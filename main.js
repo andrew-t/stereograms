@@ -1,54 +1,14 @@
-// spec could be { url: 'https://...', w: 100, h: 200 }, which itself could be data encoded, or { w: 100, h: 200 } for random noise
-function getImage(canvasId, spec) {
-    const canvas = document.getElementById(canvasId);
-    canvas.width = spec.w;
-    canvas.height = spec.h;
-    const ctx = canvas.getContext('2d');
-
-    if (spec.url)
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.addEventListener("error", reject);
-            img.addEventListener("load", () => {
-                canvas.width = spec.w;
-                canvas.height = spec.h;
-                ctx.drawImage(img, 0, 0, spec.w, spec.h);
-                resolve();
-            });
-            img.src = spec.url;
-        });
-    
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, spec.w, spec.h);
-    addNoise(canvasId);
-}
-
-// this will also be used to noise-up pattern images
-function addNoise(canvasId = "pattern", intensity = 255, offset = 0, greyscale = false) {
-    const canvas = document.getElementById(canvasId);
-    const ctx = canvas.getContext('2d');
-    const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    for (let x = 0; x < canvas.width; ++x)
-        for (let y = 0; y < canvas.height; ++y) {
-            for (let channel = 0; channel < 3; ++channel)
-                data.data[(x + y * canvas.width) * 4 + channel] += offset + ~~(Math.random() * intensity);
-        }
-    ctx.putImageData(data, 0, 0);
-}
+import "./image-getter.js";
 
 async function makeStereogram() {
-    const multiplier = parseFloat(document.getElementById("multiplier").value);
-    const depthOffset = parseFloat(document.getElementById("offset").value);
-    const inverted = document.getElementById("depth-inverted").checked;
-    const iterations = parseInt(document.getElementById("iterations").value, 10);
+    const blackDepth = parseFloat(document.getElementById("black-depth").value);
+    const whiteDepth = parseFloat(document.getElementById("white-depth").value);
 
     const output = document.getElementById("output");
-    const depthCanvas = document.getElementById("scene");
-    const patternCanvas = document.getElementById("pattern");
+    const depthCanvas = document.getElementById("depth").canvas;
+    const patternCanvas = document.getElementById("pattern").canvas;
 
-    const extraWidth = Math.round(0.5 * patternCanvas.width);
-
-    output.width = depthCanvas.width + extraWidth;
+    output.width = patternCanvas.width + depthCanvas.width;
     output.height = depthCanvas.height;
     const ctx = output.getContext('2d');
 
@@ -61,43 +21,48 @@ async function makeStereogram() {
 
     const outputData = ctx.getImageData(0, 0, output.width, output.height);
 
-    for (let i = 0; i < iterations; ++i) {
-        for (let x = centre; x < depthCanvas.width; ++x)
-            applyColumn(x, x + extraWidth, -1);
-        for (let x = centre; x >= 0; --x)
-            applyColumn(x, x, 1);
-    }
+    // render right hand side
+    for (let x = centre; x < depthCanvas.width; ++x)
+        for (let y = 0; y < output.height; ++y) {
+            // round and multiply by four because there are four values per pixel in the data array
+            const offset = Math.round(depthAt(x, y) * patternCanvas.width) * 4;
+            for (let channel = 0; channel < 4; ++channel) {
+                const i = (x + patternCanvas.width + y * output.width) * 4 + channel;
+                // Each pixel is the colour of the pixel fn(depth) pixels to the left
+                outputData.data[i] = outputData.data[i - offset];
+            }
+        }
+
+    // render left hand side
+    // Each pixel should still be the colour of the pixel fn(depth) pixels to the left
+    // but we haven't coloured the left yet, so we need to fake it somehow
+    // so imagine this line and we want to fill in the *
+    // _ _ _ _ _ _ _ * 1 2 3 4 1 2 3 1 2 3 1 1 2 3 1
+    // we actually need to process the pixels to its right and propagate their colours back
+    for (let x = centre + patternCanvas.width * 2; x >= 0; --x)
+        for (let y = 0; y < output.height; ++y) {
+            const offset = Math.round(depthAt(x - patternCanvas.width, y) * patternCanvas.width);
+            if (offset == 0 || offset >= x) continue;
+            for (let channel = 0; channel < 4; ++channel) {
+                const i = (x + y * output.width) * 4 + channel;
+                // Each pixel is the colour of the pixel fn(depth) pixels to the left
+                outputData.data[i - offset * 4] = outputData.data[i];
+            }
+        }
 
     ctx.putImageData(outputData, 0, 0);
 
-    function drawPattern(x) {
-        ctx.drawImage(patternCanvas, x, 0, patternCanvas.width, output.height);
+    function depthAt(x, y) {
+        const depth = depthData.data[(x + y * depthCanvas.width) * 4 + 1] / 255;
+        return whiteDepth * depth + blackDepth * (1 - depth);
     }
 
-    function applyColumn(depthX, outputX, direction = -1) {
-        if (outputX >= output.width || outputX < 0) return;
-        for (let y = 0; y < output.height; ++y) {   
-            let depth = depthData.data[(depthX + y * depthCanvas.width) * 4 + 1] / 255;
-            if (inverted) depth = (1 - depth);
-            depth = 1 - multiplier * (1 - depth) + depthOffset;
-            const offset = depth * direction * patternCanvas.width;
-            for (let channel = 0; channel < 4; ++channel)
-                outputData.data[(outputX + y * output.width) * 4 + channel] =
-                    outputData.data[(outputX + Math.round(offset) + y * output.width) * 4 + channel];
-        }
+    function drawPattern(x) {
+        ctx.drawImage(patternCanvas, 0, 0, patternCanvas.width, patternCanvas.height, x, 0, patternCanvas.width, output.height);
     }
 }
 
 async function generate() {
-    await getImage("scene", {
-        url: document.getElementById("depth-url").value,
-        w: parseInt(document.getElementById("depth-w").value, 10),
-        h: parseInt(document.getElementById("depth-h").value, 10)
-    });
-    await getImage("pattern", {
-        w: parseInt(document.getElementById("pattern-w").value, 10),
-        h: parseInt(document.getElementById("pattern-h").value, 10)
-    });
     await makeStereogram();
 }
 
@@ -105,3 +70,38 @@ document.getElementById("form").addEventListener("submit", e => {
     e.preventDefault();
     generate();
 });
+
+function debounced(fn, delay = 500) {
+    let timer = null;
+    return () => {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(fn, delay);
+    };
+}
+
+const debouncedGenerate = debounced(generate, 500);
+
+const els = [ "depth", "pattern", "black-depth", "white-depth" ];
+for (const el of els) document.getElementById(el).addEventListener("change", debouncedGenerate);
+
+document.getElementById("depth").addEventListener("change", () => {
+    const pattern = document.getElementById("pattern");
+    pattern.height.value = document.getElementById("depth").height.value;
+    pattern.update();
+});
+
+function drawDepthGraph() {
+    const canvas = document.getElementById("depth-graph");
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = '#0ff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, (1 - document.getElementById("black-depth").value) * canvas.height);
+    ctx.lineTo(canvas.width, (1 - document.getElementById("white-depth").value) * canvas.height);
+    ctx.stroke();
+}
+document.getElementById("black-depth").addEventListener("input", drawDepthGraph);
+document.getElementById("white-depth").addEventListener("input", drawDepthGraph);
+drawDepthGraph();

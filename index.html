@@ -1,25 +1,55 @@
+<!DOCTYPE html>
 <html>
     <head>
-        <title>andrewt.net / stereograms</title>
+        <title>github.andrewt.net / stereograms</title>
         <link rel="stylesheet" type="text/css" href="styles.css">
     </head>
     <body>
+        <h1>Stereogram maker</h1>
         <form id="form">
-            <label>Depth image URL <input id="depth-url" value="./utah.png"></label>
-            <label>Invert depth values <input id="depth-inverted" type="checkbox" checked></label>
-            <label>Depth image width <input id="depth-w" type="number" min="10" value="360"></label>
-            <label>Depth image height <input id="depth-h" type="number" min="10" value="240"></label>
-            <label>Pattern image width <input id="pattern-w" type="number" min="10" value="80"></label>
-            <label>Pattern image height <input id="pattern-h" type="number" min="10" value="240"></label>
-            <label>Depth multiplier <input id="multiplier" type="number" value="1" step="any"></label>
-            <label>Depth offset <input id="offset" type="number" value="0" step="any"></label>
-            <label>Iterations <input id="iterations" type="number" value="1" min="1" max="5"></label>
-            <button>Generate</button>
+            <section>
+                <h2>Step 1. Import depth map image</h2>
+                <details>
+                    <summary>Tips and help</summary>
+                    <p>This should be a black and white image, where the brightness of each pixel represents how far away that point is from the viewer. You can use a picture where black pixels are near and white ones are far away, or a picture where white pixels are near and black ones are far away, but you can't just use a black and white photo because the shadows will look further away than the highlights.</p>
+                    <p>You can get pictures like this with a custom shader, or by rendering in a game engine with bright white ambient light and black distance fog, or even just by drawing them — they don't have to be perfect to sell the illusion. For an example, check the "depth" image on <a href="https://learn.foundry.com/modo/12.2/content/help/pages/rendering/render_outputs_basics.html" target="_blank">this website</a>.</p>
+                </details>
+                <image-getter id="depth" legend="Depth image" noise="off" contrast-stretch></image-getter>
+            </section>
+            <section>
+                <h2>Step 1. Import or create pattern image</h2>
+                <details>
+                    <summary>Tips and help</summary>
+                    <p>This is the image that will repeat across the final picture. It should be the same height as your scene image, and generally about a quarter to a tenth of the width, depending on what settings you plan to use later.</p>
+                    <p>If you leave it blank, we can generate a noise pattern, which works pretty well. Otherwise you can import a custom image. Bear in mind that the image needs to have lots of fine detail so that your eye can pick out precisely where the repeating patterns are — if it doesn't have this, turn the noise on and we can add some noise to act as fine detail. Set the noise to about 0.5 to get enough noise to work without overwhelming the image.</p>
+                </details>
+                <image-getter id="pattern" legend="Pattern image" width="100" height="240" noise="1"></image-getter>
+            </section>
+            <section>
+                <h2>Step 3. Configure depth settings</h2>
+                <details>
+                    <summary>Tips and help</summary>
+                    <p>This is effectively "brightness and contrast" but for 3D. The left hand slider controls how far away black pixels will look, and the right hand slider controls how far away white pixels will look — unless you plan to do the stereogram by crossing your eyes instead of uncrossing them, in which case just reverse the black and white sliders..</p>
+                    <p>A high value on the slider is further away. Generally you want one slider to be right at the top and then adjust the other until it looks good. If the line is horizontal, you'll see no effect. If a slider reaches the very bottom, you're likely to see gaps in the pattern where there isn't enough repeating image to sample from.</p>
+                </details>
+                <fieldset id="depth-curve">
+                    <legend>Depth curve</legend>
+                    <label for="black-depth" id="black-label">Depth of black pixels</label>
+                    <div id="black-depth-container"><input type="range" orient="vertical" id="black-depth" value="1" min="0" max="1" step="any" /></div>
+                    <canvas id="depth-graph" width="200" height="200"></canvas>
+                    <label for="white-depth" id="white-label">Depth of white pixels</label>
+                    <div id="white-depth-container"><input type="range" orient="vertical" id="white-depth" value="0.5" min="0" max="1" step="any" /></div>
+                </fieldset>
+            </section>
         </form>
 
-        <canvas id="pattern"></canvas>
-        <canvas id="scene"></canvas>
-        <canvas id="output"></canvas>
+        <section>
+            <h2>Output</h2>
+            <canvas id="output"></canvas>
+        </section>
+
+        <p>By <a href="https://www.andrewt.net" target="_blank">Andrew</a></p>
+
         <script type="module" src="./main.js"></script>
     </body>
 </html>

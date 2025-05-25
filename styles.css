@@ -39,6 +39,7 @@ label {
     display: flex;
     justify-content: stretch;
     gap: 0.5em;
+    flex-wrap: wrap;
 
     & span {
         flex: 0 1 10em;

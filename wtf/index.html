@@ -1,0 +1,99 @@
+<html>
+<head>
+    <title>github.andrewt.net / stereograms / wtf</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+
+<nav>
+    <a href="/..">Back to the stereogram generator</a>
+    <a href="https://www.andrewt.net">The rest of my website</a>
+</nav>
+
+<article>
+<h1>How stereograms work</h1>
+
+<section>
+<h2>Normal 3D vision</h2>
+
+<p>Human depth perception has a few factors, for example parallax motion and where we have to focus to see something sharply, but perhaps the most important (certainly for this) is binocular vision — that is, how our left and right eyes see slightly different images. You can see this easily (assuming you have two working eyes) by holding up your thumb in front of you and then alternately closing each eye. You should notice the thumb appear to move compared to the background. This might be a surprise if you haven’t done it before, but it’s not hard to visualise why this happens. (If you’re familiar with binocular vision then you can skip this section.)</p>
+
+<img src="image5.png" alt="A diagram of a thumb in front of a background. Behind it are two eyes. An arrow goes from each eye, through the thumb, to point to the part of the background that eye can't see. Because the arrows cross at the thumb, they end up in different places.">
+
+<p>This helps us see depth, because the angle between the two lines in this diagram depends on how far away the object is:</p>
+
+<img src="image9.png" alt="A similar diagram to before, but without the background. instead, there is a second thumb behind the first. It's clear that the arrows from the eyes to the nearby object form a much wider angle than the ones from the eyes to the far away object. This is because the distance between the eyes is the same, but the distance to the object changes, resulting in one long, thin triangle and one short, squat one.">
+
+<p>It’s possible to trick the brain’s binocular vision. All you need is any repeating pattern. A brick wall, say, or some lined paper. The aim is to get each eye to focus on a different iteration of the repeating pattern.</p>
+
+<p>In this example, each eye is focussed on a different light patch of the pattern — but your brain assumes they’re looking at the same thing, because all the light patches look more or less identical and normally when both eyes see the same thing it means they’re looking at the same object. So your brain does the mental geometry and works out that if the eyes are looking in these directions and seeing the same object, then the only place it could possibly be is here:</p>
+
+<img src="image4.png" alt="Two eyes looking at a repeating pattern. Lines come from each eye, but land on different iterations of the repeating pattern. The brain would see the image where the lines cross — but they don't. So we continue the lines through the repeating pattern to a point behind it. This is where your brain sees the object when you do this.">
+
+<p>You can also make the object appear closer than it actually is by doing the same thing the other way around:</p>
+
+<img src="image8.png" alt="The opposite case — this time the lines come from the eyes to different parts of the repeating pattern, but in such a way that they cross en route. The result is that the brain sees the object in front of the repeating pattern, where the lines cross.">
+</section>
+
+<section>
+<h2>Dual-image stereograms</h2>
+
+<p>Most 3D images work by showing each eye an entirely different image. 3D glasses and 3D films work by putting both images in the same place and using polarisation or coloured filters to make sure that each eye only sees one of the images. Virtual reality and Victorian stereoscopes work by putting the images very close to the eyes so that each eye only sees one of them, and using lenses to make the images appear to be at a more normal viewing distance.</p>
+
+<img src="image6.png" alt="Two eyes look at a 3D-glasses image. The left, blue eye looks at a blue feature of the image, and the right, red eye looks at the red version of the same image. Again, the lines cross in front of the page, resulting in a 3D effect.">
+
+<p>Clearly, by printing the same part of the image at different positions in the red and blue versions of the image, we can control where the crossing point is, and therefore where you perceive objects to be in 3D space.</p>
+
+<p>It’s worth mentioning that 3D glasses, stereoscopes, VR and 3D films don’t tend to be worked out that way — they just photograph or render a scene from two positions about the same distance apart as your eyes, and everything else falls out naturally. But to understand single-image stereograms, we need to understand it more explicitly.</p>
+</section>
+
+<section>
+<h2>Single-image stereograms</h2>
+<p>Single-image stereograms, or autostereograms, also known as Magic Eye pictures, Stare-E-Os, and all manner of other names, have a bit of a problem, which is that they have to show each eye the same picture and still achieve the same effect. They do this by showing a repeating pattern, and varying the width of that pattern.</p>
+
+<img src="image2.png" alt="Two eyes look at a repeating pattern where the width varies as you go along. Just like in the earlier example, the lines don't cross until after they pass through the object, meaning the object looks further away than it is. But because the width of the pattern changes, the intensity of the effect changes with it, and the images of each part of the pattern appear at different depths.">
+
+<p>In this example, we’ve uncrossed our eyes slightly to focus behind the repeating pattern, as you do when looking at an autostereogram. This tricks the brain into thinking that the left eye’s image of block two and the right eye’s image of block three are in fact the same object; similarly the left eye’s image of block three and the right eye’s image of block four, and so on. Because the pattern repeats, this looks plausible enough that you can hold onto the illusion, albeit with a little effort.</p>
+
+<p>By varying the width of the pattern, we’ve made each of these images appear at a different depth. (They’re also moved horizontally, but we can ignore that — that effect is really small in a real stereogram and only looks large here because the geometry is very distorted so you can clearly see the differences.)</p>
+
+<p>The image of blocks 2 and 3 is closest to the observer, because blocks 2 and 3 are closest together. Similarly, blocks 4 and 5 are further apart, resulting in their shared image being further from the observer. By stacking lots of horizontal repeating patterns on top of each other like this, you can make a full 2D image, which will appear to vary in distance from you when you look through it in this way. That’s exactly what a stereogram is.</p>
+</section>
+
+<section>
+<h2>Making an autostereogram</h2>
+<p>You need two “source” images to create a stereogram: one “depth map” and one “pattern”. The pattern is just what it sounds like — it’s the repeating pattern whose width we’re going to vary to create the 3D effect. The depth map is an image of the scene in greyscale, where the brightness of each pixel represents not how much light is bouncing off the object, but simply how far away that point is. It’s more or less the fog effect from old videogames.</p>
+
+<img src="image7.png" alt="An example pattern (which is just noise) and an example depth map (which is a scene with some boxes, balls and a Utah teapot). The depth map looks like a selection of glowing objects in dense, black fog. The distance is pitch black, but nothing is lit. It looks a little eerie.">
+
+<p>We can start by putting them next to each other like this, and then move through the depth map section from left to right, at each point looking at the depth map to work out how wide a repeating pattern we want at that point, and then looking that many pixels to the left to see what colour we should be. The pattern on the left is just there to give us a buffer of pixels to pick from — once we get going, we’re sampling from the main stereogram. This is what makes the pattern repeat.</p>
+
+<img src="image3.png" alt="The right hand side of the depth map with a section of stereogram generated on the left of it. There's a black circle on the junction, over one of the balls in the image, which are quite near the viewer. There's a white circle above it, on the background, so far from the viewer. Lines come horizontally left out of each one showing where they're sampling from — the top line is longer.">
+
+<p>The black circle is near to the viewer, so we want a narrower repeating pattern at that point, so we sample a closer pixel. The white circle is further away, so we sample a pixel further away. (If you’re making a stereogram where the viewer is required to cross their eyes instead of uncrossing them, this would be the other way round.)</p>
+
+<p>This approach works, but it does mean that you have the pristine pattern on the left, and as it moves across, distortions build up, until the right hand side looks very messy. This isn’t a big issue most of the time, but if your pattern is something recognisable then the image ends up looking asymmetrical, and if your depth map is very complex then the distortions can make the image hard to read — for example, if you have a lot of nearby objects to the left of some far away ones, then by the time the algorithm gets to the far away ones then it might be looking for a pixel 100 pixels away, but all it will have to sample from is the 50-pixel-wide repeating pattern of the nearby object, and you won’t be able to tell what’s happening. Both these problems can be, if not actually solved, then at least ameliorated by putting the repeating pattern in the middle of the image. So first you render the right-hand-side as normal, and then you use that as the pattern to do the left hand side. As part of this you have to overwrite the original pattern, so the pristine pattern actually does not appear anywhere in the final image.</p>
+
+<img src="image1.png" alt="First, just the depth map again, with a vertical line showing its horizontal centre. Next, we put the pattern image just to the left of the centre line, and use that as the basis to calculate the right hand side of the image. Then we take it away and restore the left hand side of the depth map, before using the now completed right hand side of the image as the pattern to fill in the left hand side of the stereogram.">
+
+<p>This gives you a less distorted pattern in the centre of the image instead of at one side, resulting in a nicer looking and easier to understand image.</p>
+
+<p>There are other things you can do with this, including making the scene itself repeat, which allows you to use a pattern that effectively colours it in as you go, resulting in full-colour autostereograms, albeting only of rows of repeating objects, but this is how the main kind of single-image stereograms are produced.</p>
+</section>
+</article>
+
+<nav>
+    <a href="/..">Back to the stereogram generator</a>
+    <a href="https://www.andrewt.net">The rest of my website</a>
+</nav>
+
+<article>
+    <section>
+        <p class="smol">
+            Thanks to <a href="https://www.youtube.com/watch?v=uvXY99HysrU">LGR's stereogram video</a> for reminding me about these things and refreshing my memory of some of the details in this explainer. And shoutout to Karen Puzzles for also putting out <a href="https://www.youtube.com/watch?v=rHDfqeXBk8U">a Magic Eye video</a> less than a day later. (This must have been coincidence because nobody could have put that video together so quickly.)
+        </p>
+    </section>
+</article>
+
+</body>
+</html>

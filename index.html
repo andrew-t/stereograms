@@ -1,0 +1,22 @@
+<html>
+    <head>
+        <title>andrewt.net / stereograms</title>
+        <link rel="stylesheet" type="text/css" href="styles.css">
+    </head>
+    <body>
+        <form id="form">
+            <label>Depth image URL <input id="depth-url" value="./depth.png"></label>
+            <label>Depth image width <input id="depth-w" type="number" min="10" value="360"></label>
+            <label>Depth image height <input id="depth-h" type="number" min="10" value="240"></label>
+            <label>Pattern image width <input id="pattern-w" type="number" min="10" value="80"></label>
+            <label>Pattern image height <input id="pattern-h" type="number" min="10" value="240"></label>
+            <label>Depth multiplier <input id="multiplier" type="number" value="1"></label>
+            <button>Generate</button>
+        </form>
+
+        <canvas id="pattern"></canvas>
+        <canvas id="scene"></canvas>
+        <canvas id="output"></canvas>
+        <script type="module" src="./main.js"></script>
+    </body>
+</html>

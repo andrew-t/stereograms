@@ -8,3 +8,4 @@ and https://cgiknowledge.wordpress.com/2013/02/22/z-buffer/
 hourglass model from https://skfb.ly/6W9Rz, rendered and modified myself in blender which i am bad at
 
 snow photo from https://www.pexels.com/photo/mountains-covered-with-snow-804565/
+galaxy texture from https://seamless-backgrounds.blogspot.com/2012/01/open-space-seamless-background-texture.html

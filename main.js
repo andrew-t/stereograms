@@ -63,6 +63,7 @@ async function makeStereogram() {
 }
 
 async function generate() {
+    document.getElementById("pattern").height.value = document.getElementById("depth").height.value;
     await makeStereogram();
     document.getElementById("save").setAttribute("href", document.getElementById("output").toDataURL());
 }

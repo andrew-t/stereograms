@@ -17,10 +17,21 @@ class ImageGetter extends HTMLElement {
             const ctx = this.canvas.getContext('2d');
             ctx.fillStyle = "#808080";
             ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            if (this.imported.complete && this.imported.naturalWidth)
-                ctx.drawImage(this.imported,
+
+            if (this.imported.complete && this.imported.naturalWidth) {
+                if (this.repeatImage?.checked) {
+                    const h = Math.round(this.imported.naturalHeight * this.canvas.width / this.imported.naturalWidth);
+                    if (h < 5) h = 5;
+                    for (let y = 0; y < this.canvas.height; y += h)
+                        ctx.drawImage(this.imported,
+                            0, 0, this.imported.naturalWidth, this.imported.naturalHeight,
+                            0, y, this.canvas.width, h);
+                }
+                else ctx.drawImage(this.imported,
                     0, 0, this.imported.naturalWidth, this.imported.naturalHeight,
                     0, 0, this.canvas.width, this.canvas.height);
+            }
+                
             if (this.contrastStretch.checked) {
                 const data = ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
                 let min = 255, max = 0;
@@ -64,9 +75,12 @@ class ImageGetter extends HTMLElement {
             reader.addEventListener("load", () => this.imported.src = reader.result);
             reader.readAsDataURL(file);
         });
+        if (this.getAttribute("noise") != "off") {
+            this.repeatImage = this._input("Repeat image", { type: "checkbox" }, this.update);
+        }
 
         this.width = this._input("Width", { type: "number", min: 10, value: this.getAttribute("width") || 100 }, this.update);
-        this.height = this._input("Height", { type: "number", min: 10, value: this.getAttribute("height") || 100 }, this.update);
+        this.height = this._input("Height", { type: "number", min: 10, value: this.getAttribute("height") || 100, disabled: this.getAttribute("noise") != "off" }, this.update);
         if (this.getAttribute("noise") != "off") {
             this.greyNoise = this._input("Greyscale noise", { type: "checkbox" }, this.update);
             this.noiseLevel = this._input("Noise level", { type: "number", min: 0, max: 1, step: "any", value: 1 }, this.update);

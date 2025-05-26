@@ -64,6 +64,7 @@ async function makeStereogram() {
 
 async function generate() {
     await makeStereogram();
+    document.getElementById("save").setAttribute("href", document.getElementById("output").toDataURL());
 }
 
 document.getElementById("form").addEventListener("submit", e => {

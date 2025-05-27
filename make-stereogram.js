@@ -1,22 +1,10 @@
-import "./image-getter.js";
-import make from "./make-stereogram.js";
-
-async function makeStereogram() {
-    const blackDepth = parseFloat(document.getElementById("black-depth").value);
-    const whiteDepth = parseFloat(document.getElementById("white-depth").value);
-
-    const output = document.getElementById("output");
-    const depthCanvas = document.getElementById("depth").canvas;
-    const patternCanvas = document.getElementById("pattern").canvas;
-
-    return await make({
-        blackDepth,
-        whiteDepth,
-        destination: output,
-        depthSource: depthCanvas,
-        patternSource: patternCanvas
-    });
-
+export default async function makeStereogram({
+	blackDepth,
+	whiteDepth,
+	destination: output, // this is a canvas element
+	depthSource: depthCanvas, // also a canvas
+	patternSource: patternCanvas // also a canvas
+}) {
     output.width = patternCanvas.width + depthCanvas.width;
     output.height = depthCanvas.height;
     const ctx = output.getContext('2d');
@@ -70,49 +58,3 @@ async function makeStereogram() {
         ctx.drawImage(patternCanvas, 0, 0, patternCanvas.width, patternCanvas.height, x, 0, patternCanvas.width, output.height);
     }
 }
-
-async function generate() {
-    document.getElementById("pattern").height.value = document.getElementById("depth").height.value;
-    await makeStereogram();
-    document.getElementById("save").setAttribute("href", document.getElementById("output").toDataURL());
-}
-
-document.getElementById("form").addEventListener("submit", e => {
-    e.preventDefault();
-    generate();
-});
-
-function debounced(fn, delay = 500) {
-    let timer = null;
-    return () => {
-        if (timer) clearTimeout(timer);
-        timer = setTimeout(fn, delay);
-    };
-}
-
-const debouncedGenerate = debounced(generate, 500);
-
-const els = [ "depth", "pattern", "black-depth", "white-depth" ];
-for (const el of els) document.getElementById(el).addEventListener("change", debouncedGenerate);
-
-document.getElementById("depth").addEventListener("change", () => {
-    const pattern = document.getElementById("pattern");
-    pattern.height.value = document.getElementById("depth").height.value;
-    pattern.update();
-});
-
-function drawDepthGraph() {
-    const canvas = document.getElementById("depth-graph");
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.strokeStyle = '#0ff';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(0, (1 - document.getElementById("black-depth").value) * canvas.height);
-    ctx.lineTo(canvas.width, (1 - document.getElementById("white-depth").value) * canvas.height);
-    ctx.stroke();
-}
-document.getElementById("black-depth").addEventListener("input", drawDepthGraph);
-document.getElementById("white-depth").addEventListener("input", drawDepthGraph);
-drawDepthGraph();

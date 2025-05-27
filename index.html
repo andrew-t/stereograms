@@ -44,22 +44,6 @@
                 </details>
                 <image-getter id="pattern" legend="Pattern image" width="100" height="240" noise="1"></image-getter>
             </section>
-            <section>
-                <h2>Step 3. Configure depth settings</h2>
-                <details>
-                    <summary>Tips and help</summary>
-                    <p>This is effectively "brightness and contrast" but for 3D. The left hand slider controls how far away black pixels will look, and the right hand slider controls how far away white pixels will look — unless you plan to do the stereogram by crossing your eyes instead of uncrossing them, in which case just reverse the black and white sliders..</p>
-                    <p>A high value on the slider is further away. Generally you want one slider to be right at the top and then adjust the other until it looks good. If the line is horizontal, you'll see no effect. If a slider reaches the very bottom, you're likely to see gaps in the pattern where there isn't enough repeating image to sample from.</p>
-                </details>
-                <fieldset id="depth-curve">
-                    <legend>Depth curve</legend>
-                    <label for="black-depth" id="black-label">Depth of black pixels</label>
-                    <div id="black-depth-container"><input type="range" orient="vertical" id="black-depth" value="1" min="0" max="1" step="any" /></div>
-                    <canvas id="depth-graph" width="200" height="200"></canvas>
-                    <label for="white-depth" id="white-label">Depth of white pixels</label>
-                    <div id="white-depth-container"><input type="range" orient="vertical" id="white-depth" value="0.5" min="0" max="1" step="any" /></div>
-                </fieldset>
-            </section>
         </form>
 
         <section>
@@ -68,14 +52,14 @@
                 <summary>Tips and help</summary>
                 <p>If you're having trouble seeing the image there are a few things you can do.</p>
                 <ul>
-                    <li>Reducing the pattern width or making the image smaller will reduce how much you have to defocus.</li>
-                    <li>Try crossing your eyes instead of uncrossing them — if this makes the image appear backwards, you can fix that in the depth settings.</li>
+                    <li>Reducing the pattern width or making the image smaller will reduce how much you have to defocus, but make the image less vivid.</li>
+                    <li>Try crossing your eyes instead of uncrossing them — if this makes the image appear backwards, you can fix that using the "invert" checkbox.</li>
                     <li>If you're on a glossy screen like a phone or a MacBook, try focussing on an object reflected in the screen — this will appear "behind" the screen, which is where you want your eyes to point.</li>
+                    <li>Generally don't put the 3D slider more than halfway up, it tends to cause problems.</li>
                 </ul>
                 <p>After you get used to doing it it gets much easier.</p>
             </details>
-            <canvas id="output"></canvas>
-            <a href="#" id="save" download>Save</a>
+            <view-stereogram legend="Output" id="viewer"></view-stereogram>
         </section>
 
         <p>By <a href="https://www.andrewt.net" target="_blank">Andrew</a></p>

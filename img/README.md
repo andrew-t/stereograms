@@ -9,3 +9,5 @@ hourglass model from https://skfb.ly/6W9Rz, rendered and modified myself in blen
 
 snow photo from https://www.pexels.com/photo/mountains-covered-with-snow-804565/
 galaxy texture from https://seamless-backgrounds.blogspot.com/2012/01/open-space-seamless-background-texture.html
+
+blahaj model from https://sketchfab.com/3d-models/blahaj-ce981de49111488c81ea646067abe1ec#download

@@ -12,25 +12,28 @@ class ViewStereogram extends FieldsetComponent {
     	saveLink.setAttribute("download", "download");
     	this.fieldset.appendChild(saveLink);
 
+    	const depthSourcePromise = urlToCanvas(this.getAttribute("depth-src"));
+    	const patternSourcePromise = urlToCanvas(this.getAttribute("pattern-src"), this.patternWidthSlider.value);
+
     	this.update = async () => {
-	    	const depthSource = await urlToCanvas(this.getAttribute("depth-src"));
-	    	const patternSource = await urlToCanvas(this.getAttribute("pattern-src"), this.patternWidthSlider.value);
     		const contrast = this.contrastSlider.value;
     		const isInverted = invert != !!this.invertCheckbox.checked;
 			await make({
 				blackDepth: isInverted ? 1 : (1 - contrast),
 				whiteDepth: isInverted ? 1 - contrast : 1,
-				depthSource,
-				patternSource,
+				depthSource: await depthSourcePromise,
+				patternSource: await patternSourcePromise,
 				destination
 			});
 			saveLink.href = destination.toDataURL();
     	};
 
     	this.invertCheckbox = this._input("Invert", { type: "checkbox" }, this.update);
+    	this.showDepthMap = this._input("Show depth map", { type: "checkbox" }, this.update);
     	this.contrastSlider = this._input("3D", { type: "range", orient: "vertical", min: 0, max: 1, step: "any", value: parseFloat(this.getAttribute("contrast") ?? "0.35") }, this.update);
     	this.patternWidthSlider = this._input("Pattern width", { type: "range", orient: "horizontal", min: 0, max: 1, value: 1, step: "any" }, this.update);
     	this.fieldset.appendChild(destination);
+    	depthSourcePromise.then(canvas => this.fieldset.appendChild(canvas));
 
     	void this.update();
     }

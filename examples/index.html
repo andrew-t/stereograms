@@ -1,0 +1,111 @@
+<html>
+<head>
+    <title>github.andrewt.net / stereograms / examples</title>
+    <link rel="stylesheet" type="text/css" href="../wtf/styles.css">
+    <link rel="stylesheet" type="text/css" href="../view-stereogram.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="fediverse:creator" content="@andrewt@mathstodon.xyz">
+    <meta name="theme-color" content="antiquewhite">
+    <meta property="og:url" content="https://github.andrewt.net/stereograms/">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Example stereograms">
+    <meta property="og:description" content="A page of stereograms, plus a tool to make your own and an explainer of how they work">
+    <meta property="og:image" content="https://github.andrewt.net/stereograms/examples/example.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@Andrew_Taylor">
+    <meta name="twitter:title" content="Example stereograms">
+    <meta name="twitter:description" content="A page of stereograms, plus a tool to make your own and an explainer of how they work">
+    <meta name="twitter:image" content="https://github.andrewt.net/stereograms/examples/example.png">
+    <meta property="twitter:domain" content="andrewt.net">
+</head>
+<body>
+
+<nav>
+    <a href="..">Back to the stereogram generator</a>
+    <a href="../wtf/">How do stereograms work?</a>
+    <a href="https://github.com/andrew-t/stereograms">Source code</a>
+    <a href="https://www.andrewt.net">The rest of my website</a>
+</nav>
+
+<article>
+<h1>Example stereograms</h1>
+
+<section>
+    <p>Here are some stereograms I've made using this tool. They're presented in a little widget which might help you see them.</p>
+    <p>If you click the stereogram itself, it will fullscreen the widget. If you find it easier to cross your eyes than uncross them then tick the "invert" checkbox. If you're having trouble uncrossing far enough, try reducing the "pattern width" slider. The ideal position for it depends on you and how big your screen is — generally on a larger screen you should reduce the slider. The "3D" slider on the right works the same as on the Nintendo 3DS. Lastly, the "cheat" checkbox reveals the hidden picture so you know what you're looking for.</p>
+</section>
+
+<section>
+    <h2>Utah</h2>
+    <view-stereogram
+        depth-src="utah-depth.png"
+        pattern-src="utah-pattern.png"
+        contrast="0.35"
+        invert
+    ></view-stereogram>
+    <p>The floral texture in this one comes from <a href="https://unblast.com/free-seamless-floral-patterns/">here</a>, and the depth map scene is from <a href="https://learn.foundry.com/modo/12.2/content/help/pages/rendering/render_outputs_basics.html">here</a>.</p>
+</section>
+
+<section>
+    <h2>The Time Vortex</h2>
+    <view-stereogram
+        depth-src="tardis-depth.png"
+        pattern-src="tardis-pattern.png"
+        contrast="0.35"
+        invert
+    ></view-stereogram>
+    <p>The galaxy texture in this one comes from <a href="https://seamless-backgrounds.blogspot.com/2012/01/open-space-seamless-background-texture.html">here</a>.</p>
+</section>
+
+<section>
+    <h2>Stonewall</h2>
+    <view-stereogram
+        depth-src="brick-depth.png"
+        pattern-src="brick-pattern.png"
+        contrast="0.65"
+        invert
+    ></view-stereogram>
+    <p>It turns out that pride flags, varying vertically but not horizontally, are really good patterns for stereograms (if you throw some noise on them).</p>
+</section>
+
+<section>
+    <h2>Magic Haj</h2>
+    <view-stereogram
+        depth-src="blahaj-depth.png"
+        pattern-src="blahaj-pattern.png"
+        contrast="0.65"
+    ></view-stereogram>
+    <p>The depth map in this is rendered by me from a model from <a href="https://sketchfab.com/3d-models/blahaj-ce981de49111488c81ea646067abe1ec#download">here</a>, and the title is <a href="https://mathstodon.xyz/@greytheearthling@queer.party/114579977603272634">Grey's</a>.</p>
+</section>
+
+<section>
+    <h2>Winter</h2>
+    <view-stereogram
+        depth-src="penguins-depth.png"
+        pattern-src="penguins-pattern.png"
+        contrast="0.4"
+        invert
+    ></view-stereogram>
+    <p>The depth map in this is from <a href="https://cgiknowledge.wordpress.com/2013/02/22/z-buffer/">here</a>, and the snowy texture is sampled from <a href="https://www.pexels.com/photo/mountains-covered-with-snow-804565/">here</a>.</p>
+</section>
+
+</article>
+
+<nav>
+    <a href="..">Back to the stereogram generator</a>
+    <a href="../wtf/">How do stereograms work?</a>
+    <a href="https://github.com/andrew-t/stereograms">Source code</a>
+    <a href="https://www.andrewt.net">The rest of my website</a>
+</nav>
+
+<article>
+    <section>
+        <p class="smol">
+            Thanks to <a href="https://www.youtube.com/watch?v=uvXY99HysrU">LGR's stereogram video</a> for reminding me about these things and refreshing my memory of some of the details in this explainer. And shoutout to Karen Puzzles for also putting out <a href="https://www.youtube.com/watch?v=rHDfqeXBk8U">a Magic Eye video</a> less than a day later. (This must have been coincidence because nobody could have put that video together so quickly.)
+        </p>
+    </section>
+</article>
+
+<script src="../view-stereogram.js" type="module"></script>
+</body>
+</html>

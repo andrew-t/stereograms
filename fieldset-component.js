@@ -17,21 +17,26 @@ export default class FieldsetComponent extends HTMLElement {
         return button;
     }
 
-    _input(labelText, attrs = {}, onChange) {
+    _input(labelText, attrs = {}, onChange = null, labelAttrs = {}) {
         const label = document.createElement("label");
         const span = document.createElement("span");
         span.appendChild(document.createTextNode(labelText));
         label.appendChild(span);
         this.fieldset.appendChild(label);
         const input = document.createElement("input");
-        for (const attr in attrs) {
-            const val = attrs[attr];
-            if (val === true) input.setAttribute(attr, attr);
-            else if (val === false) input.removeAttribute(attr);
-            else input.setAttribute(attr, val.toString());
-        }
+        doAttrs(input, attrs);
+        doAttrs(label, labelAttrs);
         label.appendChild(input);
         input.addEventListener("change", onChange);
         return input;
+    }
+}
+
+function doAttrs(el, attrs) {
+    for (const attr in attrs) {
+        const val = attrs[attr];
+        if (val === true) el.setAttribute(attr, attr);
+        else if (val === false) el.removeAttribute(attr);
+        else el.setAttribute(attr, val.toString());
     }
 }

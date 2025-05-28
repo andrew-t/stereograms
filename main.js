@@ -2,15 +2,18 @@ import "./image-getter.js";
 import "./view-stereogram.js";
 
 async function makeStereogram() {
-    const output = document.getElementById("output");
     const depthCanvas = document.getElementById("depth").canvas;
     const patternCanvas = document.getElementById("pattern").canvas;
 
-    const viewer = document.createElement("view-stereogram");
+    const viewer = document.createElement("view-stereogram"),
+        oldViewer = document.getElementById("viewer");
     viewer.id = "viewer";
     viewer.setAttribute("depth-src", depthCanvas.toDataURL());
     viewer.setAttribute("pattern-src", patternCanvas.toDataURL());
-    document.getElementById("viewer").replaceWith(viewer);
+    viewer.setAttribute("contrast", oldViewer.contrastSlider.value);
+    viewer.classList.add("no-width");
+    oldViewer.replaceWith(viewer);
+    if (oldViewer.hasAttribute("invert") != oldViewer.invertCheckbox.checked) viewer.invertCheckbox.checked = true;
 }
 
 async function generate() {

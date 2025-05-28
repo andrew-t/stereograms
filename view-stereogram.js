@@ -13,7 +13,6 @@ class ViewStereogram extends FieldsetComponent {
     	this.fieldset.appendChild(saveLink);
 
     	const depthSourcePromise = urlToCanvas(this.getAttribute("depth-src"));
-    	const patternSourcePromise = urlToCanvas(this.getAttribute("pattern-src"), this.patternWidthSlider.value);
 
     	this.update = async () => {
     		const contrast = this.contrastSlider.value;
@@ -22,20 +21,27 @@ class ViewStereogram extends FieldsetComponent {
 				blackDepth: isInverted ? 1 : (1 - contrast),
 				whiteDepth: isInverted ? 1 - contrast : 1,
 				depthSource: await depthSourcePromise,
-				patternSource: await patternSourcePromise,
+				patternSource: await urlToCanvas(this.getAttribute("pattern-src"), this.patternWidthSlider.value),
 				destination
 			});
 			saveLink.href = destination.toDataURL();
     	};
 
-    	this.invertCheckbox = this._input("Invert", { type: "checkbox" }, this.update);
-    	this.showDepthMap = this._input("Show depth map", { type: "checkbox" }, this.update);
-    	this.contrastSlider = this._input("3D", { type: "range", orient: "vertical", min: 0, max: 1, step: "any", value: parseFloat(this.getAttribute("contrast") ?? "0.35") }, this.update);
-    	this.patternWidthSlider = this._input("Pattern width", { type: "range", orient: "horizontal", min: 0, max: 1, value: 1, step: "any" }, this.update);
+    	this.invertCheckbox = this._input("Invert", { type: "checkbox" }, this.update, { class: "invert" });
+    	this.showDepthMap = this._input("Cheat", { type: "checkbox" }, this.update, { class: "show-depth" });
+    	this.contrastSlider = this._input("3D", { type: "range", orient: "vertical", min: 0, max: 1, step: "any", value: parseFloat(this.getAttribute("contrast") ?? "0.35") }, this.update, { class: "contrast" });
+    	this.patternWidthSlider = this._input("Pattern width", { type: "range", orient: "horizontal", min: 0, max: 5, value: 1, step: "any" }, this.update, { class: "pattern-width" });
     	this.fieldset.appendChild(destination);
-    	depthSourcePromise.then(canvas => this.fieldset.appendChild(canvas));
+    	depthSourcePromise.then(canvas => {
+			this.fieldset.appendChild(canvas);
+			canvas.classList.add("depth");
+		});
 
-    	void this.update();
+		destination.tabIndex = 0;
+		destination.setAttribute("aria-label", "Click for fullscreen");
+		destination.addEventListener("click", () => this.requestFullscreen());
+
+    	setTimeout(this.update, 50);
     }
 }
 

@@ -15,9 +15,10 @@ export default async function makeStereogram({
     // render right hand side
     for (let x = centre; x < depthCanvas.width; ++x)
         for (let y = 0; y < output.height; ++y) {
-            const offset = Math.round(depthAt(x, y) * patternCanvas.width);
-            const pos = patternCanvas.width + x - offset;
-            patternX[y][x + patternCanvas.width] = patternX[y][pos] ?? ((patternCanvas.width * 10 + pos) % patternCanvas.width);
+            const offset = depthAt(x, y) * patternCanvas.width;
+            patternX[y][x + patternCanvas.width] =
+                patternX[y][patternCanvas.width + x - Math.round(offset)] ??
+                Math.round(((x / offset) % 1) * patternCanvas.width);
         }
 
     // render left hand side

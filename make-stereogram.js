@@ -13,6 +13,7 @@ export default async function makeStereogram({
 
     const centre = ~~(depthCanvas.width / 2);
 
+    // draw the pattern a bunch on the left so we have something to propagate
     for (let x = centre; x > -patternCanvas.width; x -= patternCanvas.width)
         drawPattern(x);
 
@@ -30,13 +31,16 @@ export default async function makeStereogram({
             }
         }
 
+    // blank out the left hand side, it has the old pattern we don't want
+    for (let x = 0; x < centre; ++x) for (let y = 0; y < output.height; ++y) outputData.data[(x + y * output.width) * 4 + 3] = 0;
+
     // render left hand side
     // Each pixel should still be the colour of the pixel fn(depth) pixels to the left
     // but we haven't coloured the left yet, so we need to fake it somehow
     // so imagine this line and we want to fill in the *
     // _ _ _ _ _ _ _ * 1 2 3 4 1 2 3 1 2 3 1 1 2 3 1
     // we actually need to process the pixels to its right and propagate their colours back
-    for (let x = centre + patternCanvas.width * 2; x >= 0; --x)
+    for (let x = centre + patternCanvas.width * 1; x >= 0; --x)
         for (let y = 0; y < output.height; ++y) {
             const offset = Math.round(depthAt(x - patternCanvas.width, y) * patternCanvas.width);
             if (offset == 0 || offset >= x) continue;
@@ -46,6 +50,14 @@ export default async function makeStereogram({
                 outputData.data[i - offset * 4] = outputData.data[i];
             }
         }
+
+    // fill in any gaps that left
+    for (let x = centre; x >= 0; --x) for (let y = 0; y < output.height; ++y) {
+        const i = (x + y * output.width) * 4;
+        if (outputData.data[i + 3]) continue;
+        for (let channel = 0; channel < 4; ++channel)
+            outputData.data[i + channel] = outputData.data[i + channel + 4];
+    }
 
     ctx.putImageData(outputData, 0, 0);
 

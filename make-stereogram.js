@@ -8,31 +8,17 @@ export default async function makeStereogram({
     output.width = patternCanvas.width + depthCanvas.width;
     output.height = depthCanvas.height;
     const ctx = output.getContext('2d');
-
     const depthData = depthCanvas.getContext('2d').getImageData(0, 0, depthCanvas.width, depthCanvas.height);
-
     const centre = ~~(depthCanvas.width / 2);
-
-    // draw the pattern a bunch on the left so we have something to propagate
-    for (let x = centre; x > -patternCanvas.width; x -= patternCanvas.width)
-        drawPattern(x);
-
-    const outputData = ctx.getImageData(0, 0, output.width, output.height);
+    const patternX = Array.from({length:output.height}).map(() => Array.from({length:output.width}).map(() => null));
 
     // render right hand side
     for (let x = centre; x < depthCanvas.width; ++x)
         for (let y = 0; y < output.height; ++y) {
-            // round and multiply by four because there are four values per pixel in the data array
-            const offset = Math.round(depthAt(x, y) * patternCanvas.width) * 4;
-            for (let channel = 0; channel < 4; ++channel) {
-                const i = (x + patternCanvas.width + y * output.width) * 4 + channel;
-                // Each pixel is the colour of the pixel fn(depth) pixels to the left
-                outputData.data[i] = outputData.data[i - offset];
-            }
+            const offset = Math.round(depthAt(x, y) * patternCanvas.width);
+            const pos = patternCanvas.width + x - offset;
+            patternX[y][x + patternCanvas.width] = patternX[y][pos] ?? ((patternCanvas.width * 10 + pos) % patternCanvas.width);
         }
-
-    // blank out the left hand side, it has the old pattern we don't want
-    for (let x = 0; x < centre; ++x) for (let y = 0; y < output.height; ++y) outputData.data[(x + y * output.width) * 4 + 3] = 0;
 
     // render left hand side
     // Each pixel should still be the colour of the pixel fn(depth) pixels to the left
@@ -40,33 +26,31 @@ export default async function makeStereogram({
     // so imagine this line and we want to fill in the *
     // _ _ _ _ _ _ _ * 1 2 3 4 1 2 3 1 2 3 1 1 2 3 1
     // we actually need to process the pixels to its right and propagate their colours back
-    for (let x = centre + patternCanvas.width * 1; x >= 0; --x)
+    for (let x = centre + patternCanvas.width * 2; x >= 0; --x)
         for (let y = 0; y < output.height; ++y) {
             const offset = Math.round(depthAt(x - patternCanvas.width, y) * patternCanvas.width);
             if (offset == 0 || offset >= x) continue;
-            for (let channel = 0; channel < 4; ++channel) {
-                const i = (x + y * output.width) * 4 + channel;
-                // Each pixel is the colour of the pixel fn(depth) pixels to the left
-                outputData.data[i - offset * 4] = outputData.data[i];
-            }
+            patternX[y][x - offset] = patternX[y][x];
+            // now propagate right in case there was a gap
+            for (let xx = x - offset + 1; patternX[y][xx] === null; ++xx)
+                patternX[y][xx] = patternX[y][xx - 1] + 1;
         }
 
-    // fill in any gaps that left
-    for (let x = centre; x >= 0; --x) for (let y = 0; y < output.height; ++y) {
-        const i = (x + y * output.width) * 4;
-        if (outputData.data[i + 3]) continue;
-        for (let channel = 0; channel < 4; ++channel)
-            outputData.data[i + channel] = outputData.data[i + channel + 4];
+    // draw pattern data per our X values
+    const outputData = ctx.getImageData(0, 0, output.width, output.height);
+    const patternData = patternCanvas.getContext('2d').getImageData(0, 0, patternCanvas.width, patternCanvas.height);
+    for (let y = 0; y < output.height; ++y) for (let x = 0; x < output.width; ++x) for (let channel = 0; channel < 4; ++channel) {
+        const val = patternX[y][x];
+        if (val === null) {
+            // console.warn("val is null at", { x, y });
+            continue;
+        }
+        outputData.data[(x + y * output.width) * 4 + channel] = patternData.data[(y * patternCanvas.width + val) * 4 + channel];
     }
-
     ctx.putImageData(outputData, 0, 0);
 
     function depthAt(x, y) {
         const depth = depthData.data[(x + y * depthCanvas.width) * 4 + 1] / 255;
         return whiteDepth * depth + blackDepth * (1 - depth);
-    }
-
-    function drawPattern(x) {
-        ctx.drawImage(patternCanvas, 0, 0, patternCanvas.width, patternCanvas.height, x, 0, patternCanvas.width, output.height);
     }
 }

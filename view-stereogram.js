@@ -12,6 +12,12 @@ class ViewStereogram extends FieldsetComponent {
     	saveLink.setAttribute("download", "download");
     	this.fieldset.appendChild(saveLink);
 
+		const ruler = document.createElement("div");
+		ruler.style.width = "1cm";
+		ruler.style.visibility = "hidden"
+		this.appendChild(ruler);
+		const oneCm = ruler.offsetWidth;
+
     	const depthSourcePromise = urlToCanvas(this.getAttribute("depth-src"));
 
     	this.update = async () => {
@@ -31,10 +37,24 @@ class ViewStereogram extends FieldsetComponent {
     	this.showDepthMap = this._input("Cheat", { type: "checkbox" }, this.update, { class: "show-depth" });
     	this.contrastSlider = this._input("3D", { type: "range", orient: "vertical", min: 0, max: 1, step: "any", value: parseFloat(this.getAttribute("contrast") ?? "0.35") }, this.update, { class: "contrast" });
     	this.patternWidthSlider = this._input("Pattern width", { type: "range", orient: "horizontal", min: 0, max: 5, value: 1, step: "any" }, this.update, { class: "pattern-width" });
+
     	this.fieldset.appendChild(destination);
     	depthSourcePromise.then(canvas => {
 			this.fieldset.appendChild(canvas);
 			canvas.classList.add("depth");
+			const canvasWidthInCm = destination.offsetWidth / oneCm;
+			const targetPatternWidthInCm = 3.0;
+			const patternProportion = targetPatternWidthInCm / canvasWidthInCm;
+			// pattern proportion = (pattern width) / (pattern width + depth width)
+			// 1 / pp = (pw + dw) / pw
+			//  = 1 + dw / pw
+			// 1 / pp - 1 = dw / pw
+			// 1/(1/pp - 1) = pw / dw
+			// dw/(1/pp - 1) = pw
+			const patternWidth = destination.width / (1 / patternProportion - 1);
+			urlToCanvas(this.getAttribute("pattern-src")).then(patternCanvas => {
+				this.patternWidthSlider.value = patternWidth / patternCanvas.width;
+			});
 		});
 
 		destination.tabIndex = 0;

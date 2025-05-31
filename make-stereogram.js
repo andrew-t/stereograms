@@ -13,12 +13,25 @@ export default async function makeStereogram({
     const patternX = Array.from({length:output.height}).map(() => Array.from({length:output.width}).map(() => null));
 
     // render right hand side
-    for (let x = centre; x < depthCanvas.width; ++x)
-        for (let y = 0; y < output.height; ++y) {
-            const offset = depthAt(x, y) * patternCanvas.width;
-            patternX[y][x + patternCanvas.width] =
-                patternX[y][patternCanvas.width + x - Math.round(offset)] ??
-                Math.round(((x / offset) % 1) * patternCanvas.width);
+    for (let y = 0; y < output.height; ++y)
+        for (let x = centre; x < depthCanvas.width; ++x) {
+            const depth = depthAt(x, y);
+            const offset = depth * patternCanvas.width;
+            const targetX = x + patternCanvas.width;
+            // If there's a value already in the pattern at the right point then just use that
+            const fromPatternX = patternX[y][targetX - Math.round(offset)];
+            if (fromPatternX !== null) {
+                patternX[y][targetX] = fromPatternX;
+                continue;
+            }
+            // If there's a value one pixel to the left we can iterate from then do that
+            const fromNeighbour = patternX[y][targetX - 1];
+            if (fromNeighbour !== null) {
+                patternX[y][targetX] = fromNeighbour + 1 / depth;
+                continue;
+            }
+            // lastly, oh well, just pick a value
+            patternX[y][targetX] = 0;
         }
 
     // render left hand side
@@ -46,7 +59,8 @@ export default async function makeStereogram({
             // console.warn("val is null at", { x, y });
             continue;
         }
-        outputData.data[(x + y * output.width) * 4 + channel] = patternData.data[(y * patternCanvas.width + val) * 4 + channel];
+        outputData.data[(x + y * output.width) * 4 + channel] =
+            patternData.data[(y * patternCanvas.width + Math.round(val)) * 4 + channel];
     }
     ctx.putImageData(outputData, 0, 0);
 

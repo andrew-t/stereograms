@@ -6,8 +6,8 @@ export default async function makeStereogram({
 	depthSource: depthCanvas, // also a canvas
 	patternSource: patternCanvas // also a canvas
 }) {
-    const unscaledWidth = patternCanvas.width + depthCanvas.width;
-    output.width = output.offsetWidth * window.devicePixelRatio ;
+    const unscaledWidth = patternCanvas.width * patternScalingFactor + depthCanvas.width;
+    output.width = output.offsetWidth * window.devicePixelRatio;
     const scalingFactor = output.width  / unscaledWidth;
     output.height = depthCanvas.height * scalingFactor;
     const scaledPatternWidth = scalingFactor * patternScalingFactor * patternCanvas.width;
@@ -18,7 +18,8 @@ export default async function makeStereogram({
     const anyRow = ctx.getImageData(0, 0, output.width, 1);
     const patternData = patternCanvas.getContext('2d').getImageData(0, 0, patternCanvas.width, patternCanvas.height);
 
-    const centre = ~~(scalingFactor * depthCanvas.width / 2);
+    // Bit less than half because the right side looks nicer than the left
+    const centre = ~~(scalingFactor * depthCanvas.width * 0.4);
     
     // Process the image one row at a time
     for (let y = 0; y < depthCanvas.height; ++y) {
@@ -44,7 +45,7 @@ export default async function makeStereogram({
             // If there's a value one pixel to the left we can iterate from then do that
             const fromNeighbour = patternX[integerTargetX - 1];
             if (fromNeighbour !== null) {
-                patternX[integerTargetX] = fromNeighbour + 1 / (depth / (scalingFactor * patternScalingFactor));
+                patternX[integerTargetX] = (fromNeighbour + 1 / (depth * scalingFactor * patternScalingFactor)) % patternCanvas.width;
                 continue;
             }
             // lastly, oh well, just pick a value
@@ -58,12 +59,13 @@ export default async function makeStereogram({
         // _ _ _ _ _ _ _ * 1 2 3 4 1 2 3 1 2 3 1 1 2 3 1
         // we actually need to process the pixels to its right and propagate their colours back
         for (let x = Math.round(centre + scaledPatternWidth * 2); x >= 0; --x) {
-            const offset = Math.round(depthAt((x - scaledPatternWidth) / scalingFactor, y) * scaledPatternWidth);
+            const depth = depthAt((x - scaledPatternWidth) / scalingFactor, y);
+            const offset = Math.round(depth * scaledPatternWidth);
             if (offset == 0 || offset >= x) continue;
             patternX[x - offset] = patternX[x];
             // now propagate right in case there was a gap
             for (let xx = x - offset + 1; patternX[xx] === null; ++xx)
-                patternX[xx] = patternX[xx - 1] + patternScalingFactor;
+                patternX[xx] = (patternX[xx - 1] + 1 / (depth * scalingFactor * patternScalingFactor)) % patternCanvas.width;
         }
 
         // draw pattern data per our X values

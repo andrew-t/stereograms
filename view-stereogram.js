@@ -22,7 +22,7 @@ class ViewStereogram extends FieldsetComponent {
 				blackDepth: isInverted ? 1 : (1 - contrast),
 				whiteDepth: isInverted ? 1 - contrast : 1,
 				depthSource: await depthSourcePromise,
-				patternScalingFactor: this.patternWidthSlider.value,
+				patternScalingFactor: parseFloat(this.patternWidthSlider.value),
 				patternSource: await patternSourcePromise,
 				destination
 			});
@@ -44,7 +44,14 @@ class ViewStereogram extends FieldsetComponent {
 		destination.addEventListener("click", () => this.requestFullscreen());
 
     	setTimeout(this.update, 50);
+
+		this.addEventListener("fullscreenchange", this.update);
+		window.addEventListener("resize", this.update);
     }
+
+	disconnectedCallback() {
+		window.removeEventListener("resize", this.update);
+	}
 }
 
 customElements.define('view-stereogram', ViewStereogram);

@@ -13,6 +13,7 @@ class ViewStereogram extends FieldsetComponent {
     	this.fieldset.appendChild(saveLink);
 
     	const depthSourcePromise = urlToCanvas(this.getAttribute("depth-src"));
+    	const patternSourcePromise = urlToCanvas(this.getAttribute("pattern-src"));
 
     	this.update = async () => {
     		const contrast = this.contrastSlider.value;
@@ -21,7 +22,8 @@ class ViewStereogram extends FieldsetComponent {
 				blackDepth: isInverted ? 1 : (1 - contrast),
 				whiteDepth: isInverted ? 1 - contrast : 1,
 				depthSource: await depthSourcePromise,
-				patternSource: await urlToCanvas(this.getAttribute("pattern-src"), this.patternWidthSlider.value),
+				patternScalingFactor: this.patternWidthSlider.value,
+				patternSource: await patternSourcePromise,
 				destination
 			});
 			saveLink.href = destination.toDataURL();
@@ -47,7 +49,7 @@ class ViewStereogram extends FieldsetComponent {
 
 customElements.define('view-stereogram', ViewStereogram);
 
-async function urlToCanvas(url, widthMultiplier = 1) {
+async function urlToCanvas(url) {
 	if (!url) return document.createElement("canvas");
 	try {
 		const image = await new Promise((resolve, reject) => {
@@ -57,7 +59,7 @@ async function urlToCanvas(url, widthMultiplier = 1) {
 			image.src = url;
 		});
 		const canvas = document.createElement("canvas");
-		canvas.width = Math.round(image.naturalWidth * widthMultiplier);
+		canvas.width = Math.round(image.naturalWidth);
 		canvas.height = image.naturalHeight;
 		const ctx = canvas.getContext('2d');
 		ctx.drawImage(image, 0, 0, image.naturalWidth, image.naturalHeight, 0, 0, canvas.width, canvas.height);

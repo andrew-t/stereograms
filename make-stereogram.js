@@ -4,7 +4,8 @@ export default async function makeStereogram({
     patternScalingFactor = 1,
 	destination: output, // this is a canvas element
 	depthSource: depthCanvas, // also a canvas
-	patternSource: patternCanvas // also a canvas
+	patternSource: patternCanvas, // also a canvas
+    tilePattern
 }) {
     const unscaledWidth = patternCanvas.width * patternScalingFactor + depthCanvas.width;
     output.width = output.offsetWidth * window.devicePixelRatio;
@@ -69,18 +70,15 @@ export default async function makeStereogram({
         }
 
         // draw pattern data per our X values
-        for (let x = 0; x < output.width; ++x) for (let channel = 0; channel < 4; ++channel) {
-            const val = patternX[x];
-            if (val === null) {
-                // console.warn("val is null at", { x, y });
-                continue;
+        if (tilePattern) {
+            for (let y = lowY; y < highY; ++y) {
+                const yy = Math.floor(y / (scalingFactor * patternScalingFactor)) % patternCanvas.height;
+                patternXToRgb(patternX, yy);
+                ctx.putImageData(anyRow, 0, y);
             }
-            anyRow.data[x * 4 + channel] =
-                patternData.data[(y * patternCanvas.width + Math.round(val)) * 4 + channel];
-        }
-        for (let y = lowY; y < highY; ++y) {
-            // console.log('y', y, anyRow);
-            ctx.putImageData(anyRow, 0, y);
+        } else {
+            patternXToRgb(patternX, y);
+            for (let y = lowY; y < highY; ++y) ctx.putImageData(anyRow, 0, y);
         }
     }
 
@@ -90,5 +88,14 @@ export default async function makeStereogram({
         if (x > depthCanvas.width - 1) x = depthCanvas.width - 1;
         const depth = depthData.data[(Math.round(x) + y * depthCanvas.width) * 4 + 1] / 255;
         return whiteDepth * depth + blackDepth * (1 - depth);
+    }
+
+    function patternXToRgb(patternX, y) {
+        for (let x = 0; x < output.width; ++x) for (let channel = 0; channel < 4; ++channel) {
+            const val = patternX[x];
+            if (val === null) continue;
+            anyRow.data[x * 4 + channel] =
+                patternData.data[(y * patternCanvas.width + Math.round(val)) * 4 + channel];
+        }
     }
 }

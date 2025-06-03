@@ -20,13 +20,14 @@ class ViewStereogram extends FieldsetComponent {
     	this.update = async () => {
     		const contrast = this.contrastSlider.value;
     		const isInverted = invert != !!this.invertCheckbox.checked;
+			const depthSource = await depthSourcePromise;
 			const patternSource = await patternSourcePromise;
-			let patternScalingFactor = parseFloat(this.patternWidthSlider.value);
+			let patternScalingFactor = parseFloat(this.patternWidthSlider.value) * depthSource.height / patternSource.height;
 			if (patternWidth) patternScalingFactor *= patternWidth / patternSource.width;
 			await make({
 				blackDepth: isInverted ? 1 : (1 - contrast),
 				whiteDepth: isInverted ? 1 - contrast : 1,
-				depthSource: await depthSourcePromise,
+				depthSource,
 				patternScalingFactor,
 				patternSource,
 				destination,

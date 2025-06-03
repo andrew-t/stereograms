@@ -75,19 +75,16 @@ export default async function makeStereogram({
         }
 
         // draw pattern data per our X values
-        if (tilePattern) {
-            let lastYy = null;
-            for (let y = lowY; y < highY; ++y) {
-                const yy = Math.floor(y / totalPatternScale) % patternCanvas.height;
-                if (yy != lastYy) {
-                    patternXToRgb(patternX, yy);
-                    lastYy = yy;
-                }
-                ctx.putImageData(anyRow, 0, y);
+        let lastYy = null;
+        for (let y = lowY; y < highY; ++y) {
+            const yy = tilePattern
+                ? Math.floor(y / totalPatternScale) % patternCanvas.height
+                : Math.floor(y * patternCanvas.height / output.height);
+            if (yy != lastYy) {
+                patternXToRgb(patternX, yy);
+                lastYy = yy;
             }
-        } else {
-            patternXToRgb(patternX, y);
-            for (let y = lowY; y < highY; ++y) ctx.putImageData(anyRow, 0, y);
+            ctx.putImageData(anyRow, 0, y);
         }
     }
 

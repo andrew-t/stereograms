@@ -88,13 +88,32 @@
 
 <p>The black circle is near to the viewer, so we want a narrower repeating pattern at that point, so we sample a closer pixel. The white circle is further away, so we sample a pixel further away. (If you’re making a stereogram where the viewer is required to cross their eyes instead of uncrossing them, this would be the other way round.)</p>
 
-<p>This approach works, but it does mean that you have the pristine pattern on the left, and as it moves across, distortions build up, until the right hand side looks very messy. This isn’t a big issue most of the time, but if your pattern is something recognisable then the image ends up looking asymmetrical, and if your depth map is very complex then the distortions can make the image hard to read — for example, if you have a lot of nearby objects to the left of some far away ones, then by the time the algorithm gets to the far away ones then it might be looking for a pixel 100 pixels away, but all it will have to sample from is the 50-pixel-wide repeating pattern of the nearby object, and you won’t be able to tell what’s happening. Both these problems can be, if not actually solved, then at least ameliorated by putting the repeating pattern in the middle of the image. So first you render the right-hand-side as normal, and then you use that as the pattern to do the left hand side. As part of this you have to overwrite the original pattern, so the pristine pattern actually does not appear anywhere in the final image.</p>
+<h3>Making it nicer</h3>
+
+<p>This approach works, but it does mean that you have the pristine pattern on the left, and as it moves across, distortions build up, until the right hand side looks very messy. This isn’t a big issue most of the time, but if your pattern is something recognisable then the image ends up looking asymmetrical, and if your depth map is very complex then the distortions can make the image hard to read — for example, if you have a lot of nearby objects to the left of some far away ones, then by the time the algorithm gets to the far away ones then it might be looking for a pixel 100 pixels away, but all it will have to sample from is the 50-pixel-wide repeating pattern of the nearby object, and you won’t be able to tell what’s happening. Both these problems can be, if not actually solved, then at least ameliorated by putting the repeating pattern in the middle of the image. So first you render the right-hand-side as normal, and then you use that as the pattern to do the left hand side.</p>
 
 <img src="image1.png" alt="First, just the depth map again, with a vertical line showing its horizontal centre. Next, we put the pattern image just to the left of the centre line, and use that as the basis to calculate the right hand side of the image. Then we take it away and restore the left hand side of the depth map, before using the now completed right hand side of the image as the pattern to fill in the left hand side of the stereogram.">
 
 <p>This gives you a less distorted pattern in the centre of the image instead of at one side, resulting in a nicer looking and easier to understand image.</p>
 
+<h3>Making it even nicer</h3>
+
+<p>In practice we do something even more complex than this, but the idea is exactly the same.</p>
+
+<p>Each row of the image is completely independent, so we only need to consider a single one. First we pick a pixel near the middle of the row — I take one around 40% of the way across, because we want to leave a little room in the middle for the clean version of the pattern (and the right hand side of the image is a little nicer than the left). It doesn't really matter what colour this pixel is — as long as we repeat that colour, it can be anything you want — so let's use the colour from the left hand side of (this row of) the pattern.</p>
+
+<p>Next, we look at the pixel one to the right. Depending on the depth we're going for, this will want to repeat a pixel quite a long way to the left of the only other pixel we've coloured in so far — so we get to make up a colour again. So, for example, if the depth of this pixel means it should be repeating the pixel 100 pixels to the left, we want to make sure the pattern loops seamlessly over that width, which means we want to move 1% of the way along the pattern. That way, when we've done 100 pixels, we'll repeat the first pixel and everything will line up.</p>
+
+<p>The pixels to the right of this are easy because we can just repeat previous pixels, as they've all been coloured in.</p>
+
+<p>Next, we want to iterate left. This is a bit harder, because you can't mirror the algorithm from the right hand side. Instead, you need to work out what pattern <em>would have</em> led to the right hand side pixels you've already calculated. So you start with some pixels you've already coloured in, then work out which pixel they would have been repeating, and colour that pixel the same colour.</p>
+
+<p>Then the last thing to do is fill in the gaps — while we were doing the previous step, we probably coloured in a few pixels twice, and left some gaps. The gaps are, effectively, what's "behind" the 3D objects. Nothing repeats them, so they can be anything we like. So we do the same thing we did before: look at the pixel to their left, and iterate along the pattern based on the depth. That pretty well emulates what we should expect the pixel to have looked like if there <em>had</em> been anything repeating it, which makes the whole thing hang together nicely.</p>
+
+<p>You can generate a fully working stereogram using just the basics (and one of the examples in <a href="https://www.youtube.com/watch?v=rHDfqeXBk8U">this video</a> is actually made that way — you can tell because the pristine version of the pattern is down the left hand side), but the advanced version of the algorthm lets you make something comparable to the published Magic Eye pictures.</p>
+
 <p>There are other things you can do with this, including making the scene itself repeat, which allows you to use a pattern that effectively colours it in as you go, resulting in full-colour autostereograms, albeting only of rows of repeating objects, but this is how the main kind of single-image stereograms are produced.</p>
+
 </section>
 </article>
 

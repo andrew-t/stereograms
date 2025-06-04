@@ -15,15 +15,16 @@ class ViewStereogram extends FieldsetComponent {
     	const depthSourcePromise = urlToCanvas(this.getAttribute("depth-src"));
     	const patternSourcePromise = urlToCanvas(this.getAttribute("pattern-src"));
     	const patternWidth = parseFloat(this.getAttribute("pattern-width"));
-    	const tilePattern = this.hasAttribute("tile-pattern");
 
     	this.update = async () => {
     		const contrast = this.contrastSlider.value;
     		const isInverted = invert != !!this.invertCheckbox.checked;
 			const depthSource = await depthSourcePromise;
 			const patternSource = await patternSourcePromise;
-			let patternScalingFactor = parseFloat(this.patternWidthSlider.value) * depthSource.height / patternSource.height;
+			const tilePattern = this.hasAttribute("tile-pattern");
+			let patternScalingFactor = parseFloat(this.patternWidthSlider.value);
 			if (patternWidth) patternScalingFactor *= patternWidth / patternSource.width;
+			else if (!tilePattern) patternScalingFactor *= depthSource.height / patternSource.height;
 			await make({
 				blackDepth: isInverted ? 1 : (1 - contrast),
 				whiteDepth: isInverted ? 1 - contrast : 1,

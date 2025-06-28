@@ -38,3 +38,19 @@ img {
 .smol {
     font-size: 0.8em;
 }
+
+signal-svg {
+    display: block;
+    max-width: 100%;
+    width: 100%;
+    aspect-ratio: 1.2;
+    border: 2px solid black;
+    background-color: #eee;
+
+    & svg {
+        max-width: 100%;
+        width: 100%;
+        display: block;
+        aspect-ratio: 1.2;
+    }
+}

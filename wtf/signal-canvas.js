@@ -88,17 +88,17 @@ class h extends m {
     return new h(t);
   }
 }
-function I(r, t) {
+function $(i, t) {
   const e = new h(!1);
   return new IntersectionObserver(
-    (i) => {
-      let u = i[0];
-      for (let n = 1; n < i.length; ++n)
-        i[n].time > u.time && (u = i[n]);
+    (r) => {
+      let u = r[0];
+      for (let n = 1; n < r.length; ++n)
+        r[n].time > u.time && (u = r[n]);
       e.setValue(u.isIntersecting);
     },
     { root: t }
-  ).observe(r), e;
+  ).observe(i), e;
 }
 class C extends HTMLElement {
   constructor() {
@@ -123,10 +123,14 @@ class C extends HTMLElement {
     window.removeEventListener("resize", this._updateSize);
   }
   isOnScreen(t) {
-    return I(this, t);
+    return $(this, t);
   }
   mouseCoords(t) {
     return { x: t.offsetX, y: t.offsetY };
+  }
+  touchCoords(t) {
+    const e = this.getBoundingClientRect();
+    return { x: t.clientX - e.left, y: t.clientY - e.top };
   }
   attrOr(t, e) {
     return this.hasAttribute(t) ? parseFloat(this.getAttribute(t)) : e;
@@ -143,12 +147,13 @@ class C extends HTMLElement {
   draw() {
     this.drawRequested = !1, this.drawFrame();
   }
-  startDrag(t, e) {
-    const s = e ? this.mouseCoords(e) : t.dragPos();
+  startDrag(t, e, s) {
+    const r = e ? this.mouseCoords(e) : s ? this.touchCoords(s) : t.dragPos();
     this.currentDrag = {
       element: t,
-      start: s,
-      current: s
+      start: r,
+      current: r,
+      touchId: s == null ? void 0 : s.identifier
     }, t.active.setValue(!0), this.style.cursor = "grabbing", this.debouncedDraw();
   }
 }
@@ -210,11 +215,11 @@ class c {
     this.params.unsubscribe(t), this.options.unsubscribe(t);
   }
 }
-function l(r, t, e) {
-  r.setAttribute(t, e);
+function l(i, t, e) {
+  i.setAttribute(t, e);
 }
-function p(r, t) {
-  r.setAttribute("style", Object.entries(t).map(([e, s]) => `${e}: ${s}`).join("; "));
+function p(i, t) {
+  i.setAttribute("style", Object.entries(t).map(([e, s]) => `${e}: ${s}`).join("; "));
 }
 class y extends c {
   constructor() {
@@ -232,17 +237,17 @@ class F extends C {
         ), this.currentDrag.current = e;
         return;
       }
-      let s = 0, i = null;
+      let s = 0, r = null;
       for (const u of this.elements.getValue()) {
         if (!(u instanceof y) || u.getOptions().disabled) continue;
         const n = u.hoverScore(e);
-        n > s && (s = n, i = u);
+        n > s && (s = n, r = u);
       }
-      if (!i) {
+      if (!r) {
         this.cancelHover();
         return;
       }
-      this.hoveredElement != i && (i.hover.setValue(!0), this.hoveredElement = i, this.debouncedDraw(), this.style.cursor = i.canBeDragged ? "grab" : "pointer");
+      this.hoveredElement != r && (r.hover.setValue(!0), this.hoveredElement = r, this.debouncedDraw(), this.style.cursor = r.canBeDragged ? "grab" : "pointer");
     }, this.cancelHover = () => {
       this.releaseDrag(), this.hoveredElement && (this.hoveredElement.hover.setValue(!1), this.hoveredElement = null, this.debouncedDraw(), this.style.cursor = "auto");
     }, this.appendChild(this.canvas), this.pixelDensity = new h(() => this.attrOr("pixel-density", devicePixelRatio)), this.scaledDimensions = new h(() => {
@@ -266,7 +271,7 @@ class F extends C {
       }
       this.tabIndex = 0, this.focusElement = t[0], this.debouncedDraw();
     }), this.addEventListener("keydown", (t) => {
-      var s, i, u, n, a;
+      var s, r, u, n, a;
       const e = this.elements.getValue().filter((o) => o instanceof y);
       switch (t.key) {
         case "ArrowUp":
@@ -289,7 +294,7 @@ class F extends C {
             }, this.currentDrag.element.dragTo(this.currentDrag.current, this.currentDrag.start);
           else {
             const o = e.indexOf(this.focusElement);
-            (s = this.focusElement) == null || s.hover.setValue(!1), this.focusElement = e[(o + e.length - 1) % e.length], (i = this.focusElement) == null || i.hover.setValue(!0);
+            (s = this.focusElement) == null || s.hover.setValue(!1), this.focusElement = e[(o + e.length - 1) % e.length], (r = this.focusElement) == null || r.hover.setValue(!0);
           }
           break;
         case "ArrowRight":
@@ -326,7 +331,7 @@ class F extends C {
     this.ctx.fillStyle = this.background.getValue();
     const t = this.scaledDimensions.getValue();
     this.ctx.fillRect(0, 0, t.width, t.height);
-    const e = [...this.elements.getValue()].filter((s) => !s.getOptions().disabled).sort((s, i) => (s.getOptions().zIndex ?? 0) - (i.getOptions().zIndex ?? 0));
+    const e = [...this.elements.getValue()].filter((s) => !s.getOptions().disabled).sort((s, r) => (s.getOptions().zIndex ?? 0) - (r.getOptions().zIndex ?? 0));
     for (const s of e)
       s.draw(this);
   }
@@ -335,33 +340,56 @@ window.customElements.define("signal-canvas", F);
 class z extends C {
   constructor() {
     super(), this.svg = document.createElementNS(A, "svg"), this.bg = document.createElementNS(A, "rect"), this.appendChild(this.svg), this.svg.appendChild(this.bg), l(this.bg, "x", "0"), l(this.bg, "t", "0"), this.dimensions.subscribe(() => {
-      const t = this.dimensions.getValue();
-      l(this.svg, "viewBox", `0 0 ${t.width} ${t.height}`), l(this.svg, "width", `${t.width}`), l(this.svg, "height", `${t.height}`), l(this.bg, "width", `${t.width}`), l(this.bg, "height", `${t.height}`);
+      const e = this.dimensions.getValue();
+      l(this.svg, "viewBox", `0 0 ${e.width} ${e.height}`), l(this.svg, "width", `${e.width}`), l(this.svg, "height", `${e.height}`), l(this.bg, "width", `${e.width}`), l(this.bg, "height", `${e.height}`);
     }, { runNow: !0 }), this.background.subscribe(
-      () => p(this.bg, {
-        fill: this.background.getValue()
-      }),
+      () => p(this.bg, { fill: this.background.getValue() }),
       { runNow: !0 }
-    ), this.addEventListener("mouseover", (t) => {
-      const e = this.getTarget(t);
-      e && (this.hoveredElement = e, e.hover.setValue(!0), this.debouncedDraw());
-    }), this.addEventListener("mouseout", (t) => {
-      const e = this.getTarget(t);
-      e && (this.hoveredElement == e && (this.hoveredElement = null), e.hover.setValue(!1), this.debouncedDraw());
-    }), this.addEventListener("mouseleave", (t) => {
-      this.releaseDrag();
-    }), this.addEventListener("mouseup", this.releaseDrag), this.addEventListener("mousedown", (t) => {
-      const e = this.getTarget(t);
-      e && e.canBeDragged && this.startDrag(e, t);
-    }), this.addEventListener("mousemove", (t) => {
+    ), this.addEventListener("mouseover", (e) => {
+      const s = this.getTarget(e.target);
+      s && (this.hoveredElement = s, s.hover.setValue(!0), this.debouncedDraw());
+    }), this.addEventListener("mouseout", (e) => {
+      const s = this.getTarget(e.target);
+      s && (this.hoveredElement == s && (this.hoveredElement = null), s.hover.setValue(!1), this.debouncedDraw());
+    }), this.addEventListener("mouseleave", this.releaseDrag), this.addEventListener("mouseup", this.releaseDrag), this.addEventListener("mousedown", (e) => {
+      const s = this.getTarget(e.target);
+      s && s.canBeDragged && this.startDrag(s, e);
+    }), this.addEventListener("touchstart", (e) => {
+      if (!this.currentDrag)
+        for (const s of e.changedTouches) {
+          const r = this.getTarget(s.target);
+          if (r && r.canBeDragged) {
+            this.startDrag(r, null, s), e.preventDefault();
+            return;
+          }
+        }
+    });
+    function t(e) {
+      if (this.currentDrag) {
+        for (const s of e.changedTouches)
+          if (s.identifier == this.currentDrag.touchId) {
+            this.releaseDrag(), e.preventDefault();
+            return;
+          }
+      }
+    }
+    this.addEventListener("touchend", t), this.addEventListener("touchcancel", t), this.addEventListener("touchmove", (e) => {
+      if (this.currentDrag) {
+        for (const s of e.changedTouches)
+          if (s.identifier == this.currentDrag.touchId) {
+            this.currentDrag.element.dragTo(this.touchCoords(s), this.currentDrag.start), e.preventDefault();
+            return;
+          }
+      }
+    }), this.addEventListener("mousemove", (e) => {
       if (!this.currentDrag) {
         this.style.cursor = "unset";
         return;
       }
-      this.currentDrag.current = this.mouseCoords(t), this.currentDrag.element.dragTo(this.currentDrag.current, this.currentDrag.start);
-    }), this.addEventListener("keydown", (t) => {
+      this.currentDrag.current = this.mouseCoords(e), this.currentDrag.element.dragTo(this.currentDrag.current, this.currentDrag.start);
+    }), this.addEventListener("keydown", (e) => {
       if (this.currentDrag) {
-        switch (t.key) {
+        switch (e.key) {
           case " ":
             this.releaseDrag();
             break;
@@ -380,11 +408,11 @@ class z extends C {
           default:
             return;
         }
-        t.preventDefault(), this.debouncedDraw();
+        e.preventDefault(), this.debouncedDraw();
         return;
       }
-      const e = this.getTarget(t);
-      e && t.key == " " && e.canBeDragged && (this.startDrag(e), t.preventDefault());
+      const s = this.getTarget(e.target);
+      s && e.key == " " && s.canBeDragged && (this.startDrag(s), e.preventDefault());
     });
   }
   drawFrame() {
@@ -393,14 +421,13 @@ class z extends C {
       e.drawSvg(this, this.svg);
   }
   getTarget(t) {
-    let e = t.target;
-    for (; e.parentNode != this.svg; ) {
-      if (e == this) return null;
-      e = e.parentNode;
+    for (; t.parentNode != this.svg; ) {
+      if (t == this) return null;
+      t = t.parentNode;
     }
-    for (const s of this.elements.getValue())
-      if (s instanceof y && s.svgNode == e)
-        return s;
+    for (const e of this.elements.getValue())
+      if (e instanceof y && e.svgNode == t)
+        return e;
     return null;
   }
 }
@@ -455,28 +482,28 @@ class q extends R {
 }
 window.customElements.define("signal-checkbox", q);
 function Z() {
-  const r = new h(0);
+  const i = new h(0);
   let t;
   function e(s) {
     t || (t = s);
-    const i = s - t;
-    r.setValue(i), requestAnimationFrame(e);
+    const r = s - t;
+    i.setValue(r), requestAnimationFrame(e);
   }
-  return requestAnimationFrame(e), r;
+  return requestAnimationFrame(e), i;
 }
-function G(r, t) {
-  if (!(r != null && r.a) || !(t != null && t.a) || !r.b || !t.b) return null;
-  const e = r.a.x - r.b.x, s = t.a.x - t.b.x, i = r.a.y - r.b.y, u = t.a.y - t.b.y, n = e * u - s * i;
+function G(i, t) {
+  if (!(i != null && i.a) || !(t != null && t.a) || !i.b || !t.b) return null;
+  const e = i.a.x - i.b.x, s = t.a.x - t.b.x, r = i.a.y - i.b.y, u = t.a.y - t.b.y, n = e * u - s * r;
   if (!n) return null;
-  const a = r.a.x * r.b.y - r.b.x * r.a.y, o = t.a.x * t.b.y - t.b.x * t.a.y;
+  const a = i.a.x * i.b.y - i.b.x * i.a.y, o = t.a.x * t.b.y - t.b.x * t.a.y;
   return {
     x: (a * s - o * e) / n,
-    y: (a * u - o * i) / n
+    y: (a * u - o * r) / n
   };
 }
 class E extends c {
   constructor(t, e) {
-    var s = (...i) => (super(...i), this.tagName = "circle", this);
+    var s = (...r) => (super(...r), this.tagName = "circle", this);
     e === void 0 ? s(
       t,
       {}
@@ -495,9 +522,9 @@ class E extends c {
     t.fillStyle = s.colour ?? "black", t.beginPath(), t.arc(e.x, e.y, s.radius ?? 4, 0, Math.PI * 2, !0), t.fill();
   }
   updateSvg() {
-    const t = this.getParams(), { radius: e, disabled: s, colour: i, zIndex: u } = this.getOptions();
+    const t = this.getParams(), { radius: e, disabled: s, colour: r, zIndex: u } = this.getOptions();
     l(this.svgNode, "cx", ((t == null ? void 0 : t.x) ?? 0).toString()), l(this.svgNode, "cy", ((t == null ? void 0 : t.y) ?? 0).toString()), l(this.svgNode, "r", (t && !s ? e ?? 4 : -1).toString()), p(this.svgNode, {
-      fill: i ?? "black",
+      fill: r ?? "black",
       "z-index": (u == null ? void 0 : u.toString()) ?? "0"
     });
   }
@@ -520,15 +547,15 @@ class E extends c {
     ));
   }
 }
-function O(r, t = 1, e = { x: 0, y: 0 }) {
+function O(i, t = 1, e = { x: 0, y: 0 }) {
   return {
-    x: Math.cos(r) * t + e.x,
-    y: Math.sin(r) * t + e.y
+    x: Math.cos(i) * t + e.x,
+    y: Math.sin(i) * t + e.y
   };
 }
-class D extends c {
+class w extends c {
   constructor(t, e) {
-    var s = (...i) => (super(...i), this.tagName = "path", this);
+    var s = (...r) => (super(...r), this.tagName = "path", this);
     e ? s(
       () => ({
         a: c.value(t),
@@ -546,14 +573,14 @@ class D extends c {
   trueEnds(t) {
     const e = this.getParams(), s = this.getOptions();
     if (!(e != null && e.a) || !(e != null && e.b) || e.a.x == e.b.x && e.a.y == e.b.y) return null;
-    let i = e.a, u = e.b;
+    let r = e.a, u = e.b;
     if (s.extendPastA || s.extendPastB) {
-      const n = W(i, u), a = t.width + t.height;
+      const n = X(r, u), a = t.width + t.height;
       if (s.extendPastA) {
-        const o = T(t, n, i);
+        const o = T(t, n, r);
         if (o > -a) {
           const g = o + a;
-          i = { x: i.x - n.x * g, y: i.y - n.y * g };
+          r = { x: r.x - n.x * g, y: r.y - n.y * g };
         }
       }
       if (s.extendPastB) {
@@ -564,13 +591,13 @@ class D extends c {
         }
       }
     }
-    return { start: i, end: u };
+    return { start: r, end: u };
   }
   draw({ ctx: t, dimensions: e }) {
-    const s = e.getValue(), i = this.trueEnds(s);
-    if (!i) return;
+    const s = e.getValue(), r = this.trueEnds(s);
+    if (!r) return;
     const u = this.getOptions();
-    D.applyLineOptions(t, u), t.beginPath(), t.moveTo(i.start.x, i.start.y), t.lineTo(i.end.x, i.end.y), t.stroke();
+    w.applyLineOptions(t, u), t.beginPath(), t.moveTo(r.start.x, r.start.y), t.lineTo(r.end.x, r.end.y), t.stroke();
   }
   updateSvg({ dimensions: t }) {
     const e = t.getValue(), s = this.trueEnds(e);
@@ -579,27 +606,27 @@ class D extends c {
       "d",
       `M ${s.start.x} ${s.start.y}
              L ${s.end.x} ${s.end.y}`
-    ), p(this.svgNode, D.svgStyles(this.getOptions())));
+    ), p(this.svgNode, w.svgStyles(this.getOptions())));
   }
   static svgStyles({ width: t, colour: e, dashes: s }) {
     return {
       stroke: e ?? "black",
       "stroke-width": `${t ?? 1}px`,
-      "stroke-dasharray": (s == null ? void 0 : s.map((i) => `${i}px`).join(" ")) ?? ""
+      "stroke-dasharray": (s == null ? void 0 : s.map((r) => `${r}px`).join(" ")) ?? ""
     };
   }
 }
-function T({ width: r, height: t }, e, s) {
-  const i = { x: s.x - r / 2, y: s.y - t / 2 };
-  return i.x * e.x + i.y * e.y;
+function T({ width: i, height: t }, e, s) {
+  const r = { x: s.x - i / 2, y: s.y - t / 2 };
+  return r.x * e.x + r.y * e.y;
 }
-function W(r, t) {
-  const e = Math.sqrt(r.x * r.x + t.x * t.x);
-  return { x: (t.x - r.x) / e, y: (t.y - r.y) / e };
+function X(i, t) {
+  const e = Math.sqrt(i.x * i.x + t.x * t.x);
+  return { x: (t.x - i.x) / e, y: (t.y - i.y) / e };
 }
-class X extends c {
+class Y extends c {
   constructor(t, e) {
-    var s = (...i) => (super(...i), this.tagName = "circle", this);
+    var s = (...r) => (super(...r), this.tagName = "circle", this);
     e !== void 0 ? s(
       () => ({
         centre: c.value(t),
@@ -617,7 +644,7 @@ class X extends c {
   // TODO: support making a circle from three points
   draw({ ctx: t }) {
     const e = this.getParams(), s = this.getOptions();
-    !e.centre || !e.radius || (D.applyLineOptions(t, s), t.beginPath(), t.arc(
+    !e.centre || !e.radius || (w.applyLineOptions(t, s), t.beginPath(), t.arc(
       e.centre.x,
       e.centre.y,
       e.radius,
@@ -631,18 +658,18 @@ class X extends c {
       centre: t,
       radius: e,
       startAngle: s,
-      endAngle: i,
+      endAngle: r,
       counterClockwise: u = !1
     } = this.getParams(), { disabled: n, ...a } = this.getOptions();
     if (n || !e || !t) {
       l(this.svgNode, "d", "M 0 0");
       return;
     }
-    if (typeof s == "number" && typeof i == "number") {
+    if (typeof s == "number" && typeof r == "number") {
       this.setSvgTag("path");
-      let o = O(s, e, t), g = O(i, e, t);
+      let o = O(s, e, t), g = O(r, e, t);
       u && ([o, g] = [g, o]);
-      const x = (i - s + Math.PI * 4) % (Math.PI * 2) >= Math.PI;
+      const x = (r - s + Math.PI * 4) % (Math.PI * 2) >= Math.PI;
       l(
         this.svgNode,
         "d",
@@ -654,14 +681,14 @@ class X extends c {
     } else
       this.setSvgTag("circle"), l(this.svgNode, "cx", t.x.toString()), l(this.svgNode, "cy", t.y.toString()), l(this.svgNode, "r", e.toString());
     p(this.svgNode, {
-      ...D.svgStyles(a),
+      ...w.svgStyles(a),
       fill: "none"
     });
   }
 }
-const w = class w extends c {
+const D = class D extends c {
   constructor(t, e) {
-    var s = (...i) => (super(...i), this.tagName = "text", this);
+    var s = (...r) => (super(...r), this.tagName = "text", this);
     e ? s(
       () => ({
         location: c.value(e),
@@ -674,33 +701,33 @@ const w = class w extends c {
     );
   }
   draw({ ctx: t }) {
-    const { location: e, text: s } = this.getParams(), i = this.getOptions();
-    !e || !s || (t.font = i.font ?? w.defaultFont, t.fillStyle = i.colour ?? "black", t.textAlign = i.align ?? "start", t.fillText(s, e.x, e.y));
+    const { location: e, text: s } = this.getParams(), r = this.getOptions();
+    !e || !s || (t.font = r.font ?? D.defaultFont, t.fillStyle = r.colour ?? "black", t.textAlign = r.align ?? "start", t.fillText(s, e.x, e.y));
   }
   updateSvg() {
-    const { location: t, text: e } = this.getParams(), { disabled: s, colour: i, align: u, font: n } = this.getOptions();
+    const { location: t, text: e } = this.getParams(), { disabled: s, colour: r, align: u, font: n } = this.getOptions();
     if (s || !t || !e) {
       this.svgNode.replaceChildren();
       return;
     }
     this.svgNode.replaceChildren(document.createTextNode(e)), l(this.svgNode, "x", t.x.toString()), l(this.svgNode, "y", t.y.toString()), p(this.svgNode, {
-      "text-anchor": Y[u ?? "left"],
-      fill: i ?? "black",
-      font: n ?? w.defaultFont
+      "text-anchor": W[u ?? "left"],
+      fill: r ?? "black",
+      font: n ?? D.defaultFont
     });
   }
 };
-w.defaultFont = "16px sans-serif";
-let P = w;
-var M = /* @__PURE__ */ ((r) => (r.LeftAlign = "left", r.RightAlign = "right", r.CentreAlign = "center", r.StartAlign = "start", r.EndAlign = "end", r))(M || {});
-const Y = {
+D.defaultFont = "16px sans-serif";
+let P = D;
+var I = /* @__PURE__ */ ((i) => (i.LeftAlign = "left", i.RightAlign = "right", i.CentreAlign = "center", i.StartAlign = "start", i.EndAlign = "end", i))(I || {});
+const W = {
   left: "start",
   center: "middle",
   right: "end",
   start: "start",
   end: "end"
 };
-class $ extends c {
+class M extends c {
   constructor(t, e, s) {
     super(t, e), this.tagName = "g", this.elements = c.paramsSignalFrom(s);
   }
@@ -709,8 +736,8 @@ class $ extends c {
       var e;
       return !((e = t.getOptions()) != null && e.disabled);
     }).sort((t, e) => {
-      var s, i;
-      return (((s = t.getOptions()) == null ? void 0 : s.zIndex) ?? 0) - (((i = e.getOptions()) == null ? void 0 : i.zIndex) ?? 0);
+      var s, r;
+      return (((s = t.getOptions()) == null ? void 0 : s.zIndex) ?? 0) - (((r = e.getOptions()) == null ? void 0 : r.zIndex) ?? 0);
     });
   }
   draw(t) {
@@ -722,18 +749,18 @@ class $ extends c {
       e.drawSvg(t, this.svgNode);
   }
 }
-class U extends $ {
+class U extends M {
   constructor(t) {
     super(null, {}, t);
   }
 }
-class j extends $ {
-  constructor(t, e, s, i) {
+class j extends M {
+  constructor(t, e, s, r) {
     e ? super(() => ({
       from: c.value(t),
       hinge: c.value(e),
       to: c.value(s),
-      value: c.value(i)
+      value: c.value(r)
     }), {}, []) : super(t, {}, []);
     const u = new m(() => {
       const { from: n, hinge: a, to: o } = this.getParams();
@@ -741,7 +768,7 @@ class j extends $ {
       const g = { x: n.x - a.x, y: n.y - a.y }, v = { x: o.x - a.x, y: o.y - a.y }, x = Math.atan2(g.y, g.x), f = Math.atan2(v.y, v.x);
       return { from: n, hinge: a, to: o, htf: g, htt: v, fromAngle: x, toAngle: f };
     });
-    this.circle = new X(() => {
+    this.circle = new Y(() => {
       const n = u.getValue();
       if (!n) return { centre: null, radius: null };
       const { radius: a } = this.getOptions();
@@ -771,15 +798,15 @@ class j extends $ {
       const n = this.getParams(), a = this.getOptions();
       return {
         disabled: !a.showValue && !n.value && !a.name,
-        align: M.CentreAlign,
+        align: I.CentreAlign,
         ...a.label
       };
     }), this.elements.setValue([this.circle, this.label]);
   }
 }
-var J = /* @__PURE__ */ ((r) => (r.Hidden = "hidden", r.Radians = "radians", r.RadiansInTermsOfπ = "pi-radians", r.Revolutions = "revolutions", r.Degrees = "degrees", r))(J || {});
-function K(r) {
-  switch (r) {
+var J = /* @__PURE__ */ ((i) => (i.Hidden = "hidden", i.Radians = "radians", i.RadiansInTermsOfπ = "pi-radians", i.Revolutions = "revolutions", i.Degrees = "degrees", i))(J || {});
+function K(i) {
+  switch (i) {
     case void 0:
     case "radians":
       return 1;
@@ -791,8 +818,8 @@ function K(r) {
       return Math.PI / 180;
   }
 }
-function Q(r) {
-  switch (r) {
+function Q(i) {
+  switch (i) {
     case void 0:
     case "radians":
       return "";
@@ -806,11 +833,11 @@ function Q(r) {
 }
 class _ extends y {
   constructor(t, e) {
-    const s = new h(t), i = c.paramsSignalFrom(e);
+    const s = new h(t), r = c.paramsSignalFrom(e);
     super(() => ({
       params: s.getValue(),
-      locus: i.getValue()
-    }), {}), this.tagName = "g", this.t = s, this.locus = i, this.point = new E(() => {
+      locus: r.getValue()
+    }), {}), this.tagName = "g", this.t = s, this.locus = r, this.point = new E(() => {
       const { params: u, locus: n } = this.getParams();
       return n.fromParametricSpace(u);
     }).setOptions(() => {
@@ -827,8 +854,8 @@ class _ extends y {
   hoverScore(t) {
     const e = this.point.getParams();
     if (!e) return 0;
-    const s = e.x - t.x, i = e.y - t.y;
-    return 1 - Math.sqrt(s * s + i * i) / 16;
+    const s = e.x - t.x, r = e.y - t.y;
+    return 1 - Math.sqrt(s * s + r * r) / 16;
   }
   dragTo(t) {
     const e = this.locus.getValue();
@@ -839,52 +866,52 @@ class _ extends y {
   }
 }
 const tt = {
-  toParametricSpace(r) {
-    return r;
+  toParametricSpace(i) {
+    return i;
   },
-  fromParametricSpace(r) {
-    return r;
+  fromParametricSpace(i) {
+    return i;
   }
 };
-function et(r, t) {
-  const e = Math.min(r.x, t.x), s = Math.max(r.x, t.x), i = Math.min(r.y, t.y), u = Math.max(r.y, t.y);
+function et(i, t) {
+  const e = Math.min(i.x, t.x), s = Math.max(i.x, t.x), r = Math.min(i.y, t.y), u = Math.max(i.y, t.y);
   return {
     toParametricSpace(n) {
       const a = { ...n };
-      return a.x < e && (a.x = e), a.x > s && (a.x = s), a.y < i && (a.y = i), a.y > u && (a.y = u), {
+      return a.x < e && (a.x = e), a.x > s && (a.x = s), a.y < r && (a.y = r), a.y > u && (a.y = u), {
         x: (a.x - e) / (s - e),
-        y: (a.y - i) / (u - i)
+        y: (a.y - r) / (u - r)
       };
     },
     fromParametricSpace(n) {
       return {
         x: e + n.x * (s - e),
-        y: i + n.y * (u - i)
+        y: r + n.y * (u - r)
       };
     }
   };
 }
-function st(r) {
+function st(i) {
   return {
     toParametricSpace() {
       return null;
     },
     fromParametricSpace() {
-      return r;
+      return i;
     }
   };
 }
-function rt(r, t, e = {}) {
-  const s = { x: t.x - r.x, y: t.y - r.y }, i = s.x * s.x + s.y * s.y, u = { x: s.x / i, y: s.y / i };
+function rt(i, t, e = {}) {
+  const s = { x: t.x - i.x, y: t.y - i.y }, r = s.x * s.x + s.y * s.y, u = { x: s.x / r, y: s.y / r };
   return {
     toParametricSpace(n) {
-      let a = (n.x - r.x) * u.x + (n.y - r.y) * u.y;
+      let a = (n.x - i.x) * u.x + (n.y - i.y) * u.y;
       return !e.extendPastA && a < 0 && (a = 0), !e.extendPastB && a > 1 && (a = 1), a;
     },
     fromParametricSpace(n) {
       return {
-        x: r.x + s.x * n,
-        y: r.y + s.y * n
+        x: i.x + s.x * n,
+        y: i.y + s.y * n
       };
     }
   };
@@ -893,15 +920,15 @@ export {
   j as Angle,
   J as AngleUnit,
   tt as Anywhere,
-  X as Circle,
+  Y as Circle,
   _ as DraggablePoint,
   c as Element,
   U as Group,
-  $ as GroupBase,
+  M as GroupBase,
   et as InARectangle,
   y as InteractiveElement,
   P as Label,
-  D as Line,
+  w as Line,
   h as NFSignal,
   rt as OnALine,
   E as Point,
@@ -909,8 +936,8 @@ export {
   H as SignalSlider,
   m as Singal,
   st as Stationary,
-  M as TextAlign,
+  I as TextAlign,
   Z as everyFrame,
-  I as isOnScreen,
+  $ as isOnScreen,
   G as lineIntersection
 };

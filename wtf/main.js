@@ -56,7 +56,14 @@ function makeEyes(canvas, threeDGlasses = false) {
     });
     diagram.add(screen);
     diagram.add(new Label(
-        "Background",
+        "Which parts of the background",
+        () => {
+            const { height } = diagram.dimensions.getValue();
+            return { x: 20, y: height * 0.2 - 28 };
+        }
+    ));
+    diagram.add(new Label(
+        "each eye can't see",
         () => {
             const { height } = diagram.dimensions.getValue();
             return { x: 20, y: height * 0.2 - 10 };
@@ -152,7 +159,8 @@ function makeEyes(canvas, threeDGlasses = false) {
     diagram.add(image);
     diagram.add(new Line(lHandle, image)).setOptions({ colour: '#c84', dashes: [2, 2], zIndex: -1 });
     diagram.add(new Line(handle.point, image)).setOptions({ colour: '#c84', dashes: [2, 2], zIndex: -1 });
-    diagram.add(new Label("Where you see the object", image.add({ x: 12, y: 6 })));
+    diagram.add(new Label("Where you see", image.add({ x: 12, y: 6 })));
+    diagram.add(new Label("the object", image.add({ x: 24, y: 28 })));
 }
 
 {
@@ -205,7 +213,8 @@ function makeEyes(canvas, threeDGlasses = false) {
     diagram.add(rightRay);
     const image = Point.lineIntersection(leftRay, rightRay);
     diagram.add(image);
-    diagram.add(new Label("Where you see the object", image.add({ x: 12, y: 6 })));
+    diagram.add(new Label("Where you see", image.add({ x: 12, y: 6 })));
+    diagram.add(new Label("the object", image.add({ x: 24, y: 28 })));
 }
 
 {
@@ -226,8 +235,9 @@ function makeEyes(canvas, threeDGlasses = false) {
         }
     ).setOptions({ zIndex: 1 });
     diagram.add(thumb);
-    diagram.add(new Label("Where you see the object", thumb.point.add({ x: 12, y: 6 })));
-    diagram.add(new Label("(click to drag)", thumb.point.add({ x: 12, y: 24 })));
+    diagram.add(new Label("Where you see", thumb.point.add({ x: -12, y: 6 }))).setOptions({ align: "right" });
+    diagram.add(new Label("the object", thumb.point.add({ x: -24, y: 24 }))).setOptions({ align: "right" });
+    diagram.add(new Label("(click to drag)", thumb.point.add({ x: 12, y: 6 })));
     const screen = new Line(() => {
         const { width, height } = diagram.dimensions.getValue();
         return {
